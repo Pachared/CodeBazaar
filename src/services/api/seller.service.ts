@@ -1,5 +1,6 @@
 import { hasRemoteApi } from '@/config/env'
 import type { AuthActionResponse } from '@/types/auth'
+import { createMockAuthResponse, createMockSellerSession } from '@/utils/mockAuth'
 import { mockDelay } from './mockDelay'
 import { apiClient } from './client'
 
@@ -8,11 +9,10 @@ export const sellerService = {
     if (!hasRemoteApi) {
       await mockDelay(320)
 
-      return {
-        title: 'พร้อมเปิดบัญชีผู้ขาย',
-        description:
-          'หน้า UI นี้เตรียมไว้สำหรับเชื่อมขั้นตอนสมัคร seller ผ่าน Google และ onboarding จริง',
-      }
+      return createMockAuthResponse(createMockSellerSession(), {
+        title: 'เปิดบัญชีผู้ขายสำเร็จ',
+        description: 'เข้าสู่ระบบด้วยบัญชีผู้ขายทดลองเรียบร้อยแล้ว',
+      })
     }
 
     const { data } = await apiClient.post<AuthActionResponse>('/seller/onboarding/google')

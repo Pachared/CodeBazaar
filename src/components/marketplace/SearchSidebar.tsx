@@ -8,10 +8,10 @@ import {
   Paper,
   Select,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from '@mui/material'
+import { IOSSwitch } from '@/components/common/IOSSwitch'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import {
   licenseOptions,
@@ -165,7 +165,7 @@ export const SearchSidebar = ({
                 ช่วยคัดเฉพาะผลงานจาก seller ที่พร้อมขายจริง
               </Typography>
             </Box>
-            <Switch
+            <IOSSwitch
               checked={filters.verifiedOnly}
               onChange={(event) => onToggleVerified(event.target.checked)}
             />

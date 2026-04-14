@@ -1,6 +1,5 @@
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import {
-  Alert,
   Box,
   Grid,
   Paper,
@@ -8,7 +7,8 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import { SectionBadge } from '@/components/common/SectionBadge'
+import { useEffect } from 'react'
+import { useNotification } from '@/app/providers/useNotification'
 import { uiRadius } from '@/theme/uiTokens'
 import type { Product } from '@/types/marketplace'
 import { ProjectCard } from './ProjectCard'
@@ -17,8 +17,6 @@ interface ProjectsGridProps {
   products: Product[]
   isLoading: boolean
   error: string | null
-  sourceLabel: string
-  resultCount: number
 }
 
 const LoadingCard = () => {
@@ -39,17 +37,29 @@ export const ProjectsGrid = ({
   products,
   isLoading,
   error,
-  sourceLabel,
-  resultCount,
 }: ProjectsGridProps) => {
+  const { notify } = useNotification()
+
+  useEffect(() => {
+    if (!error) {
+      return
+    }
+
+    notify({
+      severity: 'warning',
+      title: 'โหลดรายการไม่สำเร็จ',
+      message: error,
+      duration: 3600,
+    })
+  }, [error, notify])
+
   return (
     <Box component="section" id="projects">
       <Stack spacing={2.5}>
         <Paper sx={{ p: 3, borderRadius: uiRadius.lg }}>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 8 }}>
+            <Grid size={{ xs: 12 }}>
               <Stack spacing={1.25}>
-                <SectionBadge label="กริดโปรเจกต์" />
                 <Typography variant="h3">รายการขายที่พร้อมดูรายละเอียดและกดซื้อได้ทันที</Typography>
                 <Typography color="text.secondary">
                   แต่ละการ์ดถูกจัดใหม่ให้เห็นข้อมูลสำคัญครบในบล็อกเดียว ทั้งราคา ไลเซนส์ ผู้ขาย
@@ -57,46 +67,8 @@ export const ProjectsGrid = ({
                 </Typography>
               </Stack>
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Grid container spacing={1.5}>
-                <Grid size={{ xs: 6, md: 12 }}>
-                  <Paper
-                    sx={{
-                      p: 2,
-                      borderRadius: uiRadius.md,
-                      backgroundColor: 'rgba(255,255,255,0.72)',
-                    }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      รายการที่แสดง
-                    </Typography>
-                    <Typography variant="h5" sx={{ mt: 0.5 }}>
-                      {isLoading ? 'กำลังโหลด...' : `${resultCount} รายการ`}
-                    </Typography>
-                  </Paper>
-                </Grid>
-                <Grid size={{ xs: 6, md: 12 }}>
-                  <Paper
-                    sx={{
-                      p: 2,
-                      borderRadius: uiRadius.md,
-                      backgroundColor: 'rgba(255,255,255,0.72)',
-                    }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      แหล่งข้อมูล
-                    </Typography>
-                    <Typography variant="h6" sx={{ mt: 0.5 }}>
-                      {sourceLabel}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
-            </Grid>
           </Grid>
         </Paper>
-
-        {error ? <Alert severity="warning">{error}</Alert> : null}
 
         {isLoading ? (
           <Grid container spacing={3}>

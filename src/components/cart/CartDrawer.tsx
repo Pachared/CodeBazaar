@@ -1,18 +1,16 @@
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
-import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined'
 import {
   Box,
   Button,
   Chip,
   Drawer,
-  IconButton,
   Paper,
   Stack,
   Typography,
 } from '@mui/material'
 import { useMarketplace } from '@/app/providers/useMarketplace'
+import { CartIcon } from '@/components/cart/CartIcon'
+import { CloseActionButton } from '@/components/common/CloseActionButton'
 import { uiRadius } from '@/theme/uiTokens'
 import { formatCurrency } from '@/utils/formatCurrency'
 
@@ -59,9 +57,7 @@ export const CartDrawer = ({ open, onClose, onCheckout }: CartDrawerProps) => {
               รวมรายการซอร์สโค้ดและเทมเพลตที่พร้อมสั่งซื้อ
             </Typography>
           </Box>
-          <IconButton onClick={onClose} aria-label="ปิดตะกร้า">
-            <CloseRoundedIcon />
-          </IconButton>
+          <CloseActionButton ariaLabel="ปิดตะกร้า" onClick={onClose} />
         </Stack>
 
         <Box sx={{ flex: 1, overflowY: 'auto', px: 3, py: 2.5 }}>
@@ -89,13 +85,32 @@ export const CartDrawer = ({ open, onClose, onCheckout }: CartDrawerProps) => {
                           โดย {item.authorName}
                         </Typography>
                       </Box>
-                      <IconButton
-                        size="small"
+                      <Button
+                        variant="text"
                         onClick={() => removeFromCart(item.id)}
                         aria-label={`ลบ ${item.title}`}
+                        sx={{
+                          minWidth: 'auto',
+                          px: 0,
+                          py: 0,
+                          minHeight: 'auto',
+                          alignSelf: 'flex-start',
+                          color: 'text.secondary',
+                          fontWeight: 500,
+                          borderRadius: 0,
+                          textDecoration: 'underline',
+                          textDecorationThickness: '1px',
+                          textUnderlineOffset: '1px',
+                          textDecorationColor: 'rgba(17, 17, 17, 0.22)',
+                          '&:hover': {
+                            backgroundColor: 'transparent',
+                            color: 'text.primary',
+                            textDecorationColor: 'rgba(17, 17, 17, 0.52)',
+                          },
+                        }}
                       >
-                        <DeleteOutlineRoundedIcon fontSize="small" />
-                      </IconButton>
+                        ลบออก
+                      </Button>
                     </Stack>
 
                     <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
@@ -117,7 +132,7 @@ export const CartDrawer = ({ open, onClose, onCheckout }: CartDrawerProps) => {
               }}
             >
               <Stack spacing={1.25} sx={{ alignItems: 'center' }}>
-                <ShoppingBagOutlinedIcon sx={{ fontSize: 38, color: 'text.secondary' }} />
+                <CartIcon sx={{ fontSize: 38, color: 'text.secondary' }} />
                 <Typography variant="h6">ยังไม่มีสินค้าในตะกร้า</Typography>
                 <Typography color="text.secondary">
                   กดปุ่มใส่ตะกร้าจากรายการโปรเจกต์เพื่อเก็บไว้เปรียบเทียบหรือสั่งซื้อภายหลัง

@@ -4,7 +4,6 @@ import { PageLoader } from '@/components/common/PageLoader'
 import { MarketplaceHero } from '@/components/marketplace/MarketplaceHero'
 import { ProjectsGrid } from '@/components/marketplace/ProjectsGrid'
 import { SearchSidebar } from '@/components/marketplace/SearchSidebar'
-import { hasRemoteApi } from '@/config/env'
 import { useFeaturedProducts } from '@/hooks/useFeaturedProducts'
 import type { MarketplaceFilters, Product } from '@/types/marketplace'
 
@@ -170,8 +169,6 @@ export const HomePage = () => {
               products={filteredProducts}
               isLoading={isLoading}
               error={error}
-              sourceLabel={hasRemoteApi ? 'เชื่อมต่อ API จริง' : 'แสดงข้อมูลตัวอย่าง'}
-              resultCount={resultCount}
             />
           </Grid>
         </Grid>
