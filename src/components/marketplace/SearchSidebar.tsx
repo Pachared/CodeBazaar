@@ -1,9 +1,9 @@
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded'
 import {
   Box,
-  Button,
   Chip,
   FormControl,
+  Grid,
   MenuItem,
   Paper,
   Select,
@@ -49,24 +49,50 @@ export const SearchSidebar = ({
   onResetFilters,
 }: SearchSidebarProps) => {
   return (
-    <Stack spacing={2.5} sx={{ position: { lg: 'sticky' }, top: { lg: 106 } }}>
-      <Paper id="search-panel" sx={{ p: 3, borderRadius: uiRadius.lg }}>
+    <Stack
+      spacing={2.5}
+      sx={{
+        width: '100%',
+        minWidth: 0,
+        position: { lg: 'sticky' },
+        top: { lg: 106 },
+      }}
+    >
+      <Paper
+        id="search-panel"
+        sx={{
+          p: { xs: 2.5, sm: 3 },
+          borderRadius: uiRadius.lg,
+          width: '100%',
+          minWidth: 0,
+          overflow: 'hidden',
+        }}
+        >
         <Stack spacing={2.5}>
-          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <SectionBadge label="ค้นหาและกรอง" />
-              <Typography variant="h4" sx={{ mt: 1.5 }}>
-                เลือกโปรเจกต์ที่เหมาะกับงานของคุณ
-              </Typography>
-            </Box>
-            <Button
-              variant="text"
-              size="small"
-              startIcon={<RestartAltRoundedIcon />}
-              onClick={onResetFilters}
+          <Stack spacing={1.35} sx={{ minWidth: 0 }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, max-content) auto',
+                alignItems: 'center',
+                columnGap: 1.25,
+              }}
             >
-              รีเซ็ต
-            </Button>
+              <SectionBadge label="ค้นหาและกรอง" />
+              <SectionBadge
+                label="รีเซ็ต"
+                icon={<RestartAltRoundedIcon />}
+                onClick={onResetFilters}
+                sx={{
+                  justifySelf: 'end',
+                  flexShrink: 0,
+                }}
+              />
+            </Box>
+
+            <Typography variant="h5" sx={{ lineHeight: 1.2 }}>
+              เลือกโปรเจกต์ที่เหมาะกับงานของคุณ
+            </Typography>
           </Stack>
 
           <TextField
@@ -76,61 +102,71 @@ export const SearchSidebar = ({
             fullWidth
           />
 
-          <FormControl fullWidth>
-            <Select
-              displayEmpty
-              value={filters.category}
-              onChange={(event) => onCategoryChange(event.target.value)}
-            >
-              {projectCategoryOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Grid container spacing={1.25}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <Select
+                  displayEmpty
+                  value={filters.category}
+                  onChange={(event) => onCategoryChange(event.target.value)}
+                >
+                  {projectCategoryOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <FormControl fullWidth>
-            <Select
-              displayEmpty
-              value={filters.license}
-              onChange={(event) => onLicenseChange(event.target.value)}
-            >
-              {licenseOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <Select
+                  displayEmpty
+                  value={filters.license}
+                  onChange={(event) => onLicenseChange(event.target.value)}
+                >
+                  {licenseOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <FormControl fullWidth>
-            <Select
-              displayEmpty
-              value={filters.price}
-              onChange={(event) => onPriceChange(event.target.value)}
-            >
-              {priceOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <Select
+                  displayEmpty
+                  value={filters.price}
+                  onChange={(event) => onPriceChange(event.target.value)}
+                >
+                  {priceOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <FormControl fullWidth>
-            <Select
-              displayEmpty
-              value={filters.sort}
-              onChange={(event) => onSortChange(event.target.value)}
-            >
-              {sortOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <Select
+                  displayEmpty
+                  value={filters.sort}
+                  onChange={(event) => onSortChange(event.target.value)}
+                >
+                  {sortOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
 
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
@@ -156,8 +192,12 @@ export const SearchSidebar = ({
             </Stack>
           </Box>
 
-          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.5}
+            sx={{ justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' } }}
+          >
+            <Box sx={{ minWidth: 0 }}>
               <Typography variant="body1" sx={{ fontWeight: 700 }}>
                 เฉพาะผู้ขายที่ยืนยันตัวตนแล้ว
               </Typography>

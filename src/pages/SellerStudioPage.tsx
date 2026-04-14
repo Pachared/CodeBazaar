@@ -3,10 +3,8 @@ import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded'
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded'
 import FolderZipRoundedIcon from '@mui/icons-material/FolderZipRounded'
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded'
-import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
 import LayersRoundedIcon from '@mui/icons-material/LayersRounded'
 import SellRoundedIcon from '@mui/icons-material/SellRounded'
-import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import {
   Box,
   Button,
@@ -31,7 +29,6 @@ import {
   sellerAssetTypeOptions,
   sellerUploadCategoryOptions,
   sellerUploadChecklist,
-  sellerUploadHighlights,
   sellerUploadLicenseOptions,
 } from '@/constants/marketplace'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
@@ -179,6 +176,30 @@ const ReviewRow = ({ label, value }: { label: string; value: string }) => (
     <Typography color="text.secondary">{label}</Typography>
     <Typography sx={{ fontWeight: 700, textAlign: 'right' }}>{value}</Typography>
   </Stack>
+)
+
+const DeliveryOptionCard = ({
+  title,
+  description,
+  checked,
+  onChange,
+}: {
+  title: string
+  description: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) => (
+  <Paper sx={{ ...metricSurfaceSx, height: '100%' }}>
+    <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box>
+        <Typography variant="body2" color="text.secondary">
+          {title}
+        </Typography>
+        <Typography variant="body2">{description}</Typography>
+      </Box>
+      <IOSSwitch checked={checked} onChange={(event) => onChange(event.target.checked)} />
+    </Stack>
+  </Paper>
 )
 
 export const SellerStudioPage = () => {
@@ -381,28 +402,11 @@ export const SellerStudioPage = () => {
               อัปโหลดซอร์สโค้ด เทมเพลต และชุดคอมโพเนนต์ เพื่อเตรียมลงขายและจัดการข้อมูลรายการได้จากหน้าจอเดียว
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 780, fontWeight: 500 }}>
-              หน้านี้ออกแบบให้ผู้ขายกรอกข้อมูลสำคัญครบทั้งชื่อสินค้า รายละเอียด ราคา ไลเซนส์
-              ไฟล์แพ็กเกจ และไฟล์เอกสาร โดยพร้อมต่อ API จริงเมื่อ backend พร้อมใช้งาน
+              หน้านี้ใช้สำหรับกรอกข้อมูลสินค้า อัปโหลดไฟล์ที่เกี่ยวข้อง และเตรียมรายละเอียดให้พร้อมก่อนส่งขึ้นขายบน CodeBazaar
             </Typography>
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-            <Button
-              variant="contained"
-              startIcon={<StorefrontRoundedIcon />}
-              onClick={() => handleSubmit('publish')}
-              disabled={submitMode !== null}
-            >
-              {submitMode === 'publish' ? 'กำลังส่งรายการขาย...' : 'ส่งขึ้นรายการขาย'}
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Inventory2RoundedIcon />}
-              onClick={() => handleSubmit('draft')}
-              disabled={submitMode !== null}
-            >
-              {submitMode === 'draft' ? 'กำลังบันทึกร่าง...' : 'บันทึกร่างรายการ'}
-            </Button>
             <Button
               variant="outlined"
               component={RouterLink}
@@ -415,7 +419,32 @@ export const SellerStudioPage = () => {
         </Stack>
       </Paper>
 
-      <Grid container spacing={3}>
+      <Paper sx={{ p: { xs: 3, md: 3.5 }, borderRadius: uiRadius.xl }}>
+        <Stack spacing={2}>
+          <Box>
+            <SectionBadge label="สิ่งที่ควรมีในแพ็กเกจ" />
+            <Typography variant="h5" sx={{ mt: 1.25 }}>
+              เตรียมข้อมูลเหล่านี้ให้พร้อมก่อนเริ่มลงขายสินค้า
+            </Typography>
+          </Box>
+          <Stack spacing={1.1}>
+            {sellerUploadChecklist.map((item) => (
+              <Paper
+                key={item}
+                sx={{ ...glassSurfaceMutedSx, p: 1.6, borderRadius: uiRadius.md }}
+              >
+                <Typography>{item}</Typography>
+              </Paper>
+            ))}
+          </Stack>
+        </Stack>
+      </Paper>
+
+      <Grid
+        container
+        spacing={3}
+        sx={{ flexDirection: { xs: 'column', lg: 'row-reverse' } }}
+      >
         <Grid size={{ xs: 12, lg: 8 }}>
           <Stack spacing={3}>
             <Paper sx={{ p: { xs: 3, md: 3.5 }, borderRadius: uiRadius.xl }}>
@@ -578,6 +607,42 @@ export const SellerStudioPage = () => {
                     />
                   </Grid>
                 </Grid>
+
+                <Divider />
+
+                <Box>
+                  <Typography variant="h6">ตัวเลือกการส่งมอบและสิ่งที่รวมในแพ็กเกจ</Typography>
+                  <Typography color="text.secondary" sx={{ mt: 0.6 }}>
+                    ตั้งค่าว่ารายการนี้จะดาวน์โหลดได้ทันที มีซอร์สโค้ดต้นฉบับ และมีเอกสารประกอบหรือไม่
+                  </Typography>
+                </Box>
+
+                <Grid container spacing={1.5}>
+                  <Grid size={{ xs: 12 }}>
+                    <DeliveryOptionCard
+                      title="ดาวน์โหลดได้ทันที"
+                      description="เปิดส่งมอบแบบดิจิทัลอัตโนมัติ"
+                      checked={form.instantDelivery}
+                      onChange={(checked) => handleFieldChange('instantDelivery', checked)}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <DeliveryOptionCard
+                      title="รวมซอร์สโค้ด"
+                      description="แนบไฟล์ต้นฉบับสำหรับผู้ซื้อ"
+                      checked={form.sourceIncluded}
+                      onChange={(checked) => handleFieldChange('sourceIncluded', checked)}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <DeliveryOptionCard
+                      title="รวมเอกสารประกอบ"
+                      description="แนบ docs หรือคู่มือการติดตั้ง"
+                      checked={form.documentationIncluded}
+                      onChange={(checked) => handleFieldChange('documentationIncluded', checked)}
+                    />
+                  </Grid>
+                </Grid>
               </Stack>
             </Paper>
 
@@ -619,13 +684,44 @@ export const SellerStudioPage = () => {
                     onSelect={handleFileSelect('docsFileName')}
                   />
                 </Stack>
+
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    startIcon={<SellRoundedIcon />}
+                    onClick={() => handleSubmit('publish')}
+                    disabled={submitMode !== null}
+                  >
+                    ส่งขึ้นรายการขาย
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<LayersRoundedIcon />}
+                    onClick={() => handleSubmit('draft')}
+                    disabled={submitMode !== null}
+                  >
+                    บันทึกร่าง
+                  </Button>
+                  <Button variant="outlined" fullWidth onClick={handleReset}>
+                    รีเซ็ตฟอร์ม
+                  </Button>
+                </Stack>
               </Stack>
             </Paper>
           </Stack>
         </Grid>
 
         <Grid size={{ xs: 12, lg: 4 }}>
-          <Stack spacing={3}>
+          <Stack
+            spacing={3}
+            sx={{
+              position: { lg: 'sticky' },
+              top: { lg: 104 },
+              alignSelf: { lg: 'flex-start' },
+            }}
+          >
             <Paper sx={{ p: 3, borderRadius: uiRadius.xl }}>
               <Stack spacing={2.25}>
                 <Box>
@@ -653,122 +749,6 @@ export const SellerStudioPage = () => {
                   <ReviewRow label="เอกสาร" value={form.docsFileName ? 'มีไฟล์' : 'ยังไม่เลือก'} />
                 </Stack>
 
-                <Divider />
-
-                <Stack spacing={1.5}>
-                  <Paper sx={{ ...metricSurfaceSx }}>
-                    <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          ดาวน์โหลดได้ทันที
-                        </Typography>
-                        <Typography variant="body2">เปิดส่งมอบแบบดิจิทัลอัตโนมัติ</Typography>
-                      </Box>
-                      <IOSSwitch
-                        checked={form.instantDelivery}
-                        onChange={(event) => handleFieldChange('instantDelivery', event.target.checked)}
-                      />
-                    </Stack>
-                  </Paper>
-
-                  <Paper sx={{ ...metricSurfaceSx }}>
-                    <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          รวมซอร์สโค้ด
-                        </Typography>
-                        <Typography variant="body2">แนบไฟล์ต้นฉบับสำหรับผู้ซื้อ</Typography>
-                      </Box>
-                      <IOSSwitch
-                        checked={form.sourceIncluded}
-                        onChange={(event) => handleFieldChange('sourceIncluded', event.target.checked)}
-                      />
-                    </Stack>
-                  </Paper>
-
-                  <Paper sx={{ ...metricSurfaceSx }}>
-                    <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          รวมเอกสารประกอบ
-                        </Typography>
-                        <Typography variant="body2">แนบ docs หรือคู่มือการติดตั้ง</Typography>
-                      </Box>
-                      <IOSSwitch
-                        checked={form.documentationIncluded}
-                        onChange={(event) =>
-                          handleFieldChange('documentationIncluded', event.target.checked)
-                        }
-                      />
-                    </Stack>
-                  </Paper>
-                </Stack>
-
-                <Stack direction={{ xs: 'column', sm: 'row', lg: 'column' }} spacing={1.25}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    startIcon={<SellRoundedIcon />}
-                    onClick={() => handleSubmit('publish')}
-                    disabled={submitMode !== null}
-                  >
-                    ส่งขึ้นรายการขาย
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<LayersRoundedIcon />}
-                    onClick={() => handleSubmit('draft')}
-                    disabled={submitMode !== null}
-                  >
-                    บันทึกร่าง
-                  </Button>
-                  <Button variant="outlined" fullWidth onClick={handleReset}>
-                    รีเซ็ตฟอร์ม
-                  </Button>
-                </Stack>
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ p: 3, borderRadius: uiRadius.xl }}>
-              <Stack spacing={2}>
-                <Box>
-                  <SectionBadge label="สิ่งที่ควรมีในแพ็กเกจ" />
-                  <Typography variant="h5" sx={{ mt: 1.25 }}>
-                    เช็กลิสต์ก่อนอัปโหลดเพื่อให้รายการขายดูครบและน่าเชื่อถือ
-                  </Typography>
-                </Box>
-                <Stack spacing={1.1}>
-                  {sellerUploadChecklist.map((item) => (
-                    <Paper
-                      key={item}
-                      sx={{ ...glassSurfaceMutedSx, p: 1.6, borderRadius: uiRadius.md }}
-                    >
-                      <Typography>{item}</Typography>
-                    </Paper>
-                  ))}
-                </Stack>
-              </Stack>
-            </Paper>
-
-            <Paper sx={{ p: 3, borderRadius: uiRadius.xl }}>
-              <Stack spacing={1.5}>
-                <SectionBadge label="จุดเด่นของหน้าจอนี้" />
-                {sellerUploadHighlights.map((highlight) => (
-                  <Stack key={highlight} direction="row" spacing={1.25} sx={{ alignItems: 'flex-start' }}>
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: '#111111',
-                        mt: 0.9,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography color="text.secondary">{highlight}</Typography>
-                  </Stack>
-                ))}
               </Stack>
             </Paper>
           </Stack>

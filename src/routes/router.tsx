@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
 import { CheckoutPage } from '@/pages/CheckoutPage'
+import { DownloadsPage } from '@/pages/DownloadsPage'
 import { HomePage } from '@/pages/HomePage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { SellerPage } from '@/pages/SellerPage'
@@ -18,6 +19,10 @@ export const router = createBrowserRouter([
       {
         path: 'checkout',
         element: <CheckoutPage />,
+      },
+      {
+        path: 'downloads',
+        element: <DownloadsPage />,
       },
       {
         path: 'seller',

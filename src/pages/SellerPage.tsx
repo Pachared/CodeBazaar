@@ -12,14 +12,22 @@ import {
 import { Link as RouterLink, useOutletContext } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
 import { SectionBadge } from '@/components/common/SectionBadge'
-import {
-  sellerCatalogTypes,
-  sellerFeatures,
-  sellerStats,
-  sellerSteps,
-} from '@/constants/marketplace'
+import { sellerCatalogTypes, sellerFeatures, sellerSteps } from '@/constants/marketplace'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
 import { uiRadius } from '@/theme/uiTokens'
+
+const sellerPrimaryActionSx = {
+  px: 3.25,
+  minHeight: 54,
+  borderRadius: uiRadius.md,
+  background: 'linear-gradient(180deg, #111111 0%, #2f2f34 100%)',
+  boxShadow: '0 18px 34px rgba(17, 17, 17, 0.16)',
+  fontWeight: 700,
+  '&:hover': {
+    background: 'linear-gradient(180deg, #111111 0%, #26262b 100%)',
+    boxShadow: '0 24px 40px rgba(17, 17, 17, 0.22)',
+  },
+} as const
 
 export const SellerPage = () => {
   const { user } = useAuth()
@@ -50,8 +58,11 @@ export const SellerPage = () => {
               เปิดร้านเพื่อขายโปรเจกต์ เทมเพลต และชุดไฟล์สำหรับนักพัฒนาในหน้าที่จัดการง่ายและพร้อมต่อยอด
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 760, fontWeight: 500 }}>
-              หน้านี้ออกแบบมาสำหรับผู้ขายที่ต้องการลงสินค้า จัดหมวดหมู่ ตั้งราคา
-              และเตรียมขั้นตอนเปิดร้านให้พร้อมต่อระบบจริงในอนาคต
+              หากต้องการเพิ่มสินค้าใหม่หรือเริ่มลงรายการขายในระบบ ให้กดปุ่ม
+              {' '}
+              ลงขายสินค้า
+              {' '}
+              ด้านล่างนี้ได้ทันที
             </Typography>
           </Stack>
 
@@ -62,14 +73,16 @@ export const SellerPage = () => {
                 startIcon={<StorefrontRoundedIcon />}
                 component={RouterLink}
                 to="/seller/studio"
+                sx={sellerPrimaryActionSx}
               >
-                ไปหน้าลงสินค้า
+                ลงขายสินค้า
               </Button>
             ) : (
               <Button
                 variant="contained"
                 startIcon={<StorefrontRoundedIcon />}
                 onClick={() => openAuthDialog('seller-register')}
+                sx={sellerPrimaryActionSx}
               >
                 เปิดบัญชีผู้ขาย
               </Button>
@@ -84,21 +97,6 @@ export const SellerPage = () => {
             </Button>
           </Stack>
 
-          <Grid container spacing={2}>
-            {sellerStats.map((stat) => (
-              <Grid key={stat.label} size={{ xs: 12, md: 4 }}>
-                <Paper sx={{ p: 2.5, borderRadius: uiRadius.lg, height: '100%' }}>
-                  <Stack spacing={1}>
-                    <Typography variant="body2" color="text.secondary">
-                      {stat.label}
-                    </Typography>
-                    <Typography variant="h4">{stat.value}</Typography>
-                    <Typography color="text.secondary">{stat.description}</Typography>
-                  </Stack>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
         </Stack>
       </Paper>
 

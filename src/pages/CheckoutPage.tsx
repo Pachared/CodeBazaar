@@ -24,6 +24,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useOutletContext } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
+import { useDownloads } from '@/app/providers/useDownloads'
 import { useMarketplace } from '@/app/providers/useMarketplace'
 import { useNotification } from '@/app/providers/useNotification'
 import { CartIcon } from '@/components/cart/CartIcon'
@@ -259,8 +260,8 @@ const CheckoutSuccessView = ({ order }: { order: CompletedOrderState }) => {
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-            <Button variant="contained" component={RouterLink} to="/">
-              กลับไปเลือกซื้อ
+            <Button variant="contained" component={RouterLink} to="/downloads">
+              ไปหน้าดาวน์โหลด
             </Button>
             <Button
               variant="outlined"
@@ -279,6 +280,7 @@ const CheckoutSuccessView = ({ order }: { order: CompletedOrderState }) => {
 
 export const CheckoutPage = () => {
   const { user, isAuthenticated } = useAuth()
+  const { addCompletedOrderToLibrary } = useDownloads()
   const { cartItems, cartTotal, clearCart, openCart } = useMarketplace()
   const { notify } = useNotification()
   const { openAuthDialog } = useOutletContext<MainLayoutOutletContext>()
@@ -351,6 +353,14 @@ export const CheckoutPage = () => {
 
     try {
       const response = await checkoutService.submitOrder(payload)
+      const purchasedAt = new Date().toISOString()
+
+      addCompletedOrderToLibrary({
+        orderId: response.orderId,
+        paymentMethod: response.paymentMethod,
+        items: cartItems,
+        purchasedAt,
+      })
 
       setCompletedOrder({
         response,

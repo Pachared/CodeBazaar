@@ -138,7 +138,7 @@ export const HomePage = () => {
         }}
       >
         <Grid container spacing={3.5}>
-          <Grid size={{ xs: 12, lg: 4 }}>
+          <Grid size={{ xs: 12, lg: 4 }} sx={{ minWidth: 0 }}>
             <SearchSidebar
               filters={filters}
               resultCount={resultCount}
@@ -152,7 +152,7 @@ export const HomePage = () => {
               onResetFilters={handleResetFilters}
             />
           </Grid>
-          <Grid size={{ xs: 12, lg: 8 }}>
+          <Grid size={{ xs: 12, lg: 8 }} sx={{ minWidth: 0 }}>
             <ProjectsGrid
               products={filteredProducts}
               isLoading={isLoading}

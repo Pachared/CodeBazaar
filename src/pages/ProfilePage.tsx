@@ -1,4 +1,5 @@
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
 import GoogleIcon from '@mui/icons-material/Google'
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
@@ -340,6 +341,14 @@ const AuthenticatedProfileContent = ({
               </Stack>
 
               <Stack spacing={1.25}>
+                <Button
+                  variant="contained"
+                  component={RouterLink}
+                  to="/downloads"
+                  startIcon={<DownloadRoundedIcon />}
+                >
+                  คลังดาวน์โหลด
+                </Button>
                 {user.role === 'seller' ? (
                   <Button
                     variant="outlined"
@@ -441,14 +450,6 @@ const AuthenticatedProfileContent = ({
                 </Grid>
               </Grid>
 
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-                <Button variant="contained" disabled={!isDirty} onClick={handleSave}>
-                  บันทึกการเปลี่ยนแปลง
-                </Button>
-                <Button variant="outlined" disabled={!isDirty} onClick={handleReset}>
-                  รีเซ็ตข้อมูล
-                </Button>
-              </Stack>
             </Stack>
           </Paper>
 
@@ -579,6 +580,23 @@ const AuthenticatedProfileContent = ({
                   />
                 </Stack>
               </Paper>
+
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1.25}
+                sx={{
+                  justifyContent: { sm: 'flex-end' },
+                  alignItems: { xs: 'stretch', sm: 'center' },
+                  pt: 0.5,
+                }}
+              >
+                <Button variant="contained" disabled={!isDirty} onClick={handleSave}>
+                  บันทึกการเปลี่ยนแปลง
+                </Button>
+                <Button variant="outlined" disabled={!isDirty} onClick={handleReset}>
+                  รีเซ็ตข้อมูล
+                </Button>
+              </Stack>
             </Stack>
           </Paper>
         </Stack>
