@@ -126,3 +126,37 @@ export const sellerSteps: SellerStep[] = [
     description: 'จัดการรายการขาย อัปเดตเวอร์ชัน และติดตามคำสั่งซื้อจากระบบกลางได้ต่อทันที',
   },
 ]
+
+export const sellerAssetTypeOptions: FilterOption[] = [
+  { label: 'ซอร์สโค้ด', value: 'source-code' },
+  { label: 'เทมเพลต', value: 'template' },
+  { label: 'ชุดคอมโพเนนต์', value: 'component-kit' },
+]
+
+export const sellerUploadCategoryOptions: FilterOption[] = [
+  { label: 'มาร์เก็ตเพลส', value: 'marketplace' },
+  { label: 'แดชบอร์ด', value: 'dashboard' },
+  { label: 'หน้าเปิดตัว', value: 'landing-page' },
+  { label: 'SaaS เริ่มต้น', value: 'saas' },
+  { label: 'ระบบดีไซน์', value: 'design-system' },
+]
+
+export const sellerUploadLicenseOptions: FilterOption[] = [
+  { label: 'ใช้งานส่วนตัว', value: 'personal' },
+  { label: 'ใช้งานเชิงพาณิชย์', value: 'commercial' },
+  { label: 'ขายต่อได้', value: 'resale' },
+]
+
+export const sellerUploadChecklist = [
+  'แนบไฟล์แพ็กเกจหลักสำหรับดาวน์โหลด',
+  'ใส่คำอธิบายที่บอกขอบเขตของโปรเจกต์ชัดเจน',
+  'ระบุ stack, เวอร์ชัน และไลเซนส์ให้ครบ',
+  'เพิ่มลิงก์ demo หรือคู่มือถ้ามี',
+  'ตรวจสอบราคาและการจัดส่งดิจิทัลก่อนส่งขาย',
+]
+
+export const sellerUploadHighlights = [
+  'รองรับแพ็กเกจ .zip หรือไฟล์บีบอัดพร้อมใช้งาน',
+  'แยกข้อมูลสำคัญของรายการขายไว้ครบสำหรับต่อ backend จริง',
+  'เหมาะกับทั้ง source code, template และ component bundle',
+]

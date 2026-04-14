@@ -65,6 +65,7 @@ export const MainLayout = () => {
   const currentYear = new Date().getFullYear()
   const accountLabel = user?.role === 'seller' ? 'บัญชีผู้ขายทดลอง' : 'บัญชีผู้ใช้ทดลอง'
   const isProfileRoute = location.pathname === '/profile'
+  const isSellerRoute = location.pathname.startsWith('/seller')
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -184,7 +185,7 @@ export const MainLayout = () => {
                 </>
               )}
               <Button
-                variant={location.pathname === '/seller' ? 'contained' : 'outlined'}
+                variant={isSellerRoute ? 'contained' : 'outlined'}
                 startIcon={<StorefrontRoundedIcon />}
                 component={RouterLink}
                 to="/seller"

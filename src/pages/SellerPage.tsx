@@ -10,6 +10,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Link as RouterLink, useOutletContext } from 'react-router-dom'
+import { useAuth } from '@/app/providers/useAuth'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import {
   sellerCatalogTypes,
@@ -21,7 +22,9 @@ import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
 import { uiRadius } from '@/theme/uiTokens'
 
 export const SellerPage = () => {
+  const { user } = useAuth()
   const { openAuthDialog } = useOutletContext<MainLayoutOutletContext>()
+  const isSeller = user?.role === 'seller'
 
   return (
     <Container
@@ -53,13 +56,24 @@ export const SellerPage = () => {
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-            <Button
-              variant="contained"
-              startIcon={<StorefrontRoundedIcon />}
-              onClick={() => openAuthDialog('seller-register')}
-            >
-              เปิดบัญชีผู้ขาย
-            </Button>
+            {isSeller ? (
+              <Button
+                variant="contained"
+                startIcon={<StorefrontRoundedIcon />}
+                component={RouterLink}
+                to="/seller/studio"
+              >
+                ไปหน้าลงสินค้า
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                startIcon={<StorefrontRoundedIcon />}
+                onClick={() => openAuthDialog('seller-register')}
+              >
+                เปิดบัญชีผู้ขาย
+              </Button>
+            )}
             <Button
               variant="outlined"
               component={RouterLink}
