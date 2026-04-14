@@ -11,7 +11,7 @@ export interface MarketplaceContextValue {
   closeCart: () => void
   addToCart: (product: Product) => void
   removeFromCart: (productId: string) => void
-  clearCart: () => void
+  clearCart: (options?: { silent?: boolean }) => void
   buyNow: (product: Product) => void
   isInCart: (productId: string) => boolean
 }

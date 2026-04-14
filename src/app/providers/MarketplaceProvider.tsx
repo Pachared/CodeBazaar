@@ -71,17 +71,20 @@ export const MarketplaceProvider = ({ children }: PropsWithChildren) => {
     }
   }
 
-  const clearCart = () => {
+  const clearCart = (options?: { silent?: boolean }) => {
     if (cartItems.length === 0) {
       return
     }
 
     setCartItems([])
-    notify({
-      severity: 'info',
-      title: 'ล้างตะกร้าแล้ว',
-      message: 'รายการสินค้าทั้งหมดถูกนำออกจากตะกร้าเรียบร้อยแล้ว',
-    })
+
+    if (!options?.silent) {
+      notify({
+        severity: 'info',
+        title: 'ล้างตะกร้าแล้ว',
+        message: 'รายการสินค้าทั้งหมดถูกนำออกจากตะกร้าเรียบร้อยแล้ว',
+      })
+    }
   }
 
   const buyNow = (product: Product) => {

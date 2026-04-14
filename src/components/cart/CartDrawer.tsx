@@ -9,6 +9,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useMarketplace } from '@/app/providers/useMarketplace'
+import { useAuth } from '@/app/providers/useAuth'
 import { CartIcon } from '@/components/cart/CartIcon'
 import { CloseActionButton } from '@/components/common/CloseActionButton'
 import { uiRadius } from '@/theme/uiTokens'
@@ -22,6 +23,7 @@ interface CartDrawerProps {
 
 export const CartDrawer = ({ open, onClose, onCheckout }: CartDrawerProps) => {
   const { cartItems, cartTotal, removeFromCart, clearCart } = useMarketplace()
+  const { isAuthenticated } = useAuth()
   const hasItems = cartItems.length > 0
 
   return (
@@ -156,9 +158,14 @@ export const CartDrawer = ({ open, onClose, onCheckout }: CartDrawerProps) => {
               disabled={!hasItems}
               onClick={onCheckout}
             >
-              เข้าสู่ระบบเพื่อสั่งซื้อ
+              {isAuthenticated ? 'ไปหน้าชำระเงิน' : 'เข้าสู่ระบบเพื่อสั่งซื้อ'}
             </Button>
-            <Button variant="outlined" fullWidth disabled={!hasItems} onClick={clearCart}>
+            <Button
+              variant="outlined"
+              fullWidth
+              disabled={!hasItems}
+              onClick={() => clearCart()}
+            >
               ล้างตะกร้า
             </Button>
           </Stack>

@@ -10,6 +10,12 @@ export interface AuthProfileFields {
   bio: string
   website: string
   location: string
+  bankName: string
+  bankAccountNumber: string
+  bankBookImageName: string
+  bankBookImageUrl: string
+  identityCardImageName: string
+  identityCardImageUrl: string
   notifyOrders: boolean
   notifyMarketplace: boolean
 }

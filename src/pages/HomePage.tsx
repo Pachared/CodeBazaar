@@ -1,6 +1,5 @@
-import { startTransition, useDeferredValue, useEffect, useState } from 'react'
+import { startTransition, useDeferredValue, useState } from 'react'
 import { Container, Grid } from '@mui/material'
-import { PageLoader } from '@/components/common/PageLoader'
 import { MarketplaceHero } from '@/components/marketplace/MarketplaceHero'
 import { ProjectsGrid } from '@/components/marketplace/ProjectsGrid'
 import { SearchSidebar } from '@/components/marketplace/SearchSidebar'
@@ -58,16 +57,7 @@ const sortProducts = (items: Product[], sort: string) => {
 export const HomePage = () => {
   const { products, isLoading, error } = useFeaturedProducts()
   const [filters, setFilters] = useState<MarketplaceFilters>(defaultFilters)
-  const [showInitialOverlay, setShowInitialOverlay] = useState(true)
   const deferredQuery = useDeferredValue(filters.query)
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setShowInitialOverlay(false)
-    }, 800)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [])
 
   const handleFilterChange = <Key extends keyof MarketplaceFilters>(
     key: Key,
@@ -134,11 +124,9 @@ export const HomePage = () => {
   )
 
   const resultCount = isLoading ? 6 : filteredProducts.length
-  const showPageLoader = showInitialOverlay || isLoading
 
   return (
     <>
-      <PageLoader open={showPageLoader} />
       <MarketplaceHero projectCount={products.length} />
 
       <Container

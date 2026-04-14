@@ -1,5 +1,6 @@
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
 import GoogleIcon from '@mui/icons-material/Google'
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import {
@@ -8,11 +9,13 @@ import {
   Container,
   Divider,
   Grid,
+  MenuItem,
   Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material'
+import type { ChangeEvent } from 'react'
 import { useState } from 'react'
 import { Link as RouterLink, useOutletContext } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
@@ -26,8 +29,34 @@ import type { AuthProfileUpdate, AuthSessionUser } from '@/types/auth'
 
 type ProfileFormState = Pick<
   AuthSessionUser,
-  'name' | 'storeName' | 'headline' | 'bio' | 'website' | 'location' | 'notifyOrders' | 'notifyMarketplace'
+  | 'name'
+  | 'storeName'
+  | 'headline'
+  | 'bio'
+  | 'website'
+  | 'location'
+  | 'bankName'
+  | 'bankAccountNumber'
+  | 'bankBookImageName'
+  | 'bankBookImageUrl'
+  | 'identityCardImageName'
+  | 'identityCardImageUrl'
+  | 'notifyOrders'
+  | 'notifyMarketplace'
 >
+
+const sellerBankOptions = [
+  'ธนาคารกรุงเทพ',
+  'ธนาคารกสิกรไทย',
+  'ธนาคารกรุงไทย',
+  'ธนาคารไทยพาณิชย์',
+  'ธนาคารกรุงศรีอยุธยา',
+  'ธนาคารทหารไทยธนชาต',
+  'ธนาคารออมสิน',
+  'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร',
+  'ธนาคารซีไอเอ็มบี ไทย',
+  'ธนาคารยูโอบี',
+] as const
 
 const createProfileFormState = (user: AuthSessionUser): ProfileFormState => ({
   name: user.name,
@@ -36,15 +65,115 @@ const createProfileFormState = (user: AuthSessionUser): ProfileFormState => ({
   bio: user.bio,
   website: user.website,
   location: user.location,
+  bankName: user.bankName,
+  bankAccountNumber: user.bankAccountNumber,
+  bankBookImageName: user.bankBookImageName,
+  bankBookImageUrl: user.bankBookImageUrl,
+  identityCardImageName: user.identityCardImageName,
+  identityCardImageUrl: user.identityCardImageUrl,
   notifyOrders: user.notifyOrders,
   notifyMarketplace: user.notifyMarketplace,
 })
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('ไม่สามารถอ่านไฟล์รูปภาพได้'))
+    }
+
+    reader.onerror = () => reject(new Error('ไม่สามารถอ่านไฟล์รูปภาพได้'))
+    reader.readAsDataURL(file)
+  })
+
+const formatProfileFileMeta = (file: File) => {
+  const sizeInKb = file.size / 1024
+
+  if (sizeInKb < 1024) {
+    return `${file.name} · ${Math.max(1, Math.round(sizeInKb))} KB`
+  }
+
+  return `${file.name} · ${(sizeInKb / 1024).toFixed(1)} MB`
+}
 
 const AccountMetaRow = ({ label, value }: { label: string; value: string }) => (
   <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
     <Typography color="text.secondary">{label}</Typography>
     <Typography sx={{ fontWeight: 700, textAlign: 'right' }}>{value}</Typography>
   </Stack>
+)
+
+interface SellerDocumentUploadCardProps {
+  title: string
+  description: string
+  fileName: string
+  imageUrl: string
+  onSelect: (event: ChangeEvent<HTMLInputElement>) => void
+}
+
+const SellerDocumentUploadCard = ({
+  title,
+  description,
+  fileName,
+  imageUrl,
+  onSelect,
+}: SellerDocumentUploadCardProps) => (
+  <Paper sx={{ ...glassSurfaceMutedSx, p: 2.25, borderRadius: uiRadius.lg, height: '100%' }}>
+    <Stack spacing={1.5}>
+      <Box
+        sx={{
+          width: '100%',
+          height: 168,
+          overflow: 'hidden',
+          display: 'grid',
+          placeItems: 'center',
+          borderRadius: uiRadius.lg,
+          backgroundColor: 'rgba(17, 17, 17, 0.04)',
+          border: '1px solid rgba(17, 17, 17, 0.08)',
+        }}
+      >
+        {imageUrl ? (
+          <Box
+            component="img"
+            src={imageUrl}
+            alt={title}
+            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <ImageRoundedIcon sx={{ fontSize: 38, color: 'rgba(17, 17, 17, 0.34)' }} />
+        )}
+      </Box>
+
+      <Box>
+        <Typography variant="h6">{title}</Typography>
+        <Typography color="text.secondary">{description}</Typography>
+      </Box>
+
+      <Stack spacing={1}>
+        <Box
+          sx={{ minHeight: 42, display: 'flex', alignItems: 'center' }}
+        >
+          <Typography
+            color={fileName ? 'text.primary' : 'text.secondary'}
+            sx={{ wordBreak: 'break-all' }}
+          >
+            {fileName || 'ยังไม่ได้เลือกไฟล์'}
+          </Typography>
+        </Box>
+
+        <Button component="label" variant="outlined" sx={{ alignSelf: 'flex-start' }}>
+          อัปโหลดไฟล์
+          <input hidden type="file" accept="image/*" onChange={onSelect} />
+        </Button>
+      </Stack>
+    </Stack>
+  </Paper>
 )
 
 interface AuthenticatedProfileContentProps {
@@ -64,6 +193,7 @@ const AuthenticatedProfileContent = ({
   const { notify } = useNotification()
 
   const accountTypeLabel = user.role === 'seller' ? 'บัญชีผู้ขาย' : 'บัญชีผู้ซื้อ'
+  const isSeller = user.role === 'seller'
   const isDirty =
     form.name !== user.name ||
     form.storeName !== user.storeName ||
@@ -71,6 +201,12 @@ const AuthenticatedProfileContent = ({
     form.bio !== user.bio ||
     form.website !== user.website ||
     form.location !== user.location ||
+    form.bankName !== user.bankName ||
+    form.bankAccountNumber !== user.bankAccountNumber ||
+    form.bankBookImageName !== user.bankBookImageName ||
+    form.bankBookImageUrl !== user.bankBookImageUrl ||
+    form.identityCardImageName !== user.identityCardImageName ||
+    form.identityCardImageUrl !== user.identityCardImageUrl ||
     form.notifyOrders !== user.notifyOrders ||
     form.notifyMarketplace !== user.notifyMarketplace
 
@@ -88,6 +224,37 @@ const AuthenticatedProfileContent = ({
     setForm(createProfileFormState(user))
   }
 
+  const handleSellerFileSelect =
+    (
+      field: 'bankBookImageName' | 'identityCardImageName',
+      imageField: 'bankBookImageUrl' | 'identityCardImageUrl',
+    ) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+
+      if (!file) {
+        return
+      }
+
+      event.target.value = ''
+
+      void readFileAsDataUrl(file)
+        .then((dataUrl) => {
+          setForm((currentForm) => ({
+            ...currentForm,
+            [field]: formatProfileFileMeta(file),
+            [imageField]: dataUrl,
+          }))
+        })
+        .catch((error) => {
+          notify({
+            severity: 'error',
+            title: 'อัปโหลดรูปไม่สำเร็จ',
+            message: error instanceof Error ? error.message : 'ลองเลือกไฟล์รูปใหม่อีกครั้ง',
+          })
+        })
+    }
+
   const handleSave = () => {
     const nextProfile: AuthProfileUpdate = {
       name: form.name.trim() || user.name,
@@ -96,6 +263,12 @@ const AuthenticatedProfileContent = ({
       bio: form.bio.trim(),
       website: form.website.trim(),
       location: form.location.trim(),
+      bankName: form.bankName.trim(),
+      bankAccountNumber: form.bankAccountNumber.trim(),
+      bankBookImageName: form.bankBookImageName.trim(),
+      bankBookImageUrl: form.bankBookImageUrl.trim(),
+      identityCardImageName: form.identityCardImageName.trim(),
+      identityCardImageUrl: form.identityCardImageUrl.trim(),
       notifyOrders: form.notifyOrders,
       notifyMarketplace: form.notifyMarketplace,
     }
@@ -116,7 +289,7 @@ const AuthenticatedProfileContent = ({
   return (
     <Grid container spacing={3}>
       <Grid size={{ xs: 12, md: 4 }}>
-        <Stack spacing={3}>
+        <Stack spacing={3} sx={{ position: { md: 'sticky' }, top: { md: 104 }, alignSelf: 'flex-start' }}>
           <Paper
             sx={{
               p: 3,
@@ -148,6 +321,22 @@ const AuthenticatedProfileContent = ({
                 <AccountMetaRow label="ผู้ให้บริการ" value="Google" />
                 <AccountMetaRow label="สถานะข้อมูล" value="บันทึกในเครื่อง" />
                 <AccountMetaRow label="อีเมลบัญชี" value={user.email} />
+                {isSeller ? (
+                  <>
+                    <AccountMetaRow
+                      label="ธนาคารรับเงิน"
+                      value={form.bankName || 'ยังไม่ระบุ'}
+                    />
+                    <AccountMetaRow
+                      label="เอกสารผู้ขาย"
+                      value={
+                        form.bankBookImageName && form.identityCardImageName
+                          ? 'แนบครบแล้ว'
+                          : 'รออัปโหลด'
+                      }
+                    />
+                  </>
+                ) : null}
               </Stack>
 
               <Stack spacing={1.25}>
@@ -277,6 +466,79 @@ const AuthenticatedProfileContent = ({
               </Stack>
             </Stack>
           </Paper>
+
+          {isSeller ? (
+            <Paper
+              sx={{
+                p: { xs: 3, md: 3.5 },
+                borderRadius: uiRadius.xl,
+                backgroundColor: 'rgba(255, 255, 255, 0.72)',
+              }}
+            >
+              <Stack spacing={2.5}>
+                <Box>
+                  <SectionBadge label="ข้อมูลรับเงิน" />
+                  <Typography variant="h4" sx={{ mt: 1.25 }}>
+                    จัดการข้อมูลธนาคารและเอกสารสำหรับบัญชีผู้ขาย
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    ใช้สำหรับเตรียมข้อมูลรับเงินและยืนยันตัวตนก่อนเชื่อมระบบผู้ขายจริงในภายหลัง
+                  </Typography>
+                </Box>
+
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth
+                      select
+                      label="ชื่อธนาคาร"
+                      value={form.bankName}
+                      onChange={(event) => handleFieldChange('bankName', event.target.value)}
+                    >
+                      <MenuItem value="">เลือกธนาคาร</MenuItem>
+                      {sellerBankOptions.map((bankName) => (
+                        <MenuItem key={bankName} value={bankName}>
+                          {bankName}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth
+                      label="เลขบัญชีธนาคาร"
+                      value={form.bankAccountNumber}
+                      onChange={(event) =>
+                        handleFieldChange('bankAccountNumber', event.target.value)
+                      }
+                      placeholder="เช่น 123-4-56789-0"
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <SellerDocumentUploadCard
+                      title="รูปหน้าสมุดธนาคาร"
+                      description="ใช้ยืนยันข้อมูลบัญชีรับเงินของผู้ขาย"
+                      fileName={form.bankBookImageName}
+                      imageUrl={form.bankBookImageUrl}
+                      onSelect={handleSellerFileSelect('bankBookImageName', 'bankBookImageUrl')}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <SellerDocumentUploadCard
+                      title="รูปบัตรประชาชน"
+                      description="ใช้สำหรับยืนยันตัวตนของเจ้าของบัญชีผู้ขาย"
+                      fileName={form.identityCardImageName}
+                      imageUrl={form.identityCardImageUrl}
+                      onSelect={handleSellerFileSelect(
+                        'identityCardImageName',
+                        'identityCardImageUrl',
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Stack>
+            </Paper>
+          ) : null}
 
           <Paper
             sx={{

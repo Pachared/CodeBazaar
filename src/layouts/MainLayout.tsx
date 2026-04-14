@@ -14,14 +14,15 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
-import { useState } from 'react'
-import { Link as RouterLink, Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link as RouterLink, Outlet, useLocation, useNavigate, useNavigation } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
 import { useMarketplace } from '@/app/providers/useMarketplace'
 import { useNotification } from '@/app/providers/useNotification'
 import { AuthDialog } from '@/components/auth/AuthDialog'
 import { CartDrawer } from '@/components/cart/CartDrawer'
 import { CartIcon } from '@/components/cart/CartIcon'
+import { PageLoader } from '@/components/common/PageLoader'
 import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { CookieBanner } from '@/components/cookies/CookieBanner'
 import { CookieSettingsDialog } from '@/components/cookies/CookieSettingsDialog'
@@ -33,8 +34,24 @@ export interface MainLayoutOutletContext {
   openAuthDialog: (mode: AuthDialogMode) => void
 }
 
+const RoutePageLoader = ({ isNavigating }: { isNavigating: boolean }) => {
+  const [showTransitionOverlay, setShowTransitionOverlay] = useState(true)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setShowTransitionOverlay(false)
+    }, 420)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [])
+
+  return <PageLoader open={showTransitionOverlay || isNavigating} />
+}
+
 export const MainLayout = () => {
   const location = useLocation()
+  const navigate = useNavigate()
+  const navigation = useNavigation()
   const { cartCount, isCartOpen, openCart, closeCart } = useMarketplace()
   const { user, isAuthenticated } = useAuth()
   const { notify } = useNotification()
@@ -59,6 +76,11 @@ export const MainLayout = () => {
         title: 'กรุณาเข้าสู่ระบบก่อนสั่งซื้อ',
         message: 'เข้าสู่ระบบด้วย Google ก่อนเพื่อดำเนินการสั่งซื้อและจัดการคำสั่งซื้อของคุณ',
       })
+      return
+    }
+
+    if (cartCount > 0) {
+      navigate('/checkout')
     }
   }
 
@@ -69,6 +91,10 @@ export const MainLayout = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <RoutePageLoader
+        key={location.pathname}
+        isNavigating={navigation.state !== 'idle'}
+      />
       <AppBar
         position="sticky"
         color="transparent"
