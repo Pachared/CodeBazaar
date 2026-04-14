@@ -13,6 +13,8 @@ export const SectionBadge = ({ label, sx }: SectionBadgeProps) => {
       label={label}
       sx={{
         ...glassSurfaceMutedSx,
+        width: 'fit-content',
+        alignSelf: 'flex-start',
         borderRadius: uiRadius.sm,
         color: 'text.primary',
         ...sx,

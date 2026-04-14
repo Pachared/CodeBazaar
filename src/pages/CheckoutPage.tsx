@@ -419,7 +419,7 @@ export const CheckoutPage = () => {
 
   if (!hasItems) {
     return (
-      <Container maxWidth="sm" sx={{ py: { xs: 4, md: 6 } }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
         <Paper
           sx={{
             ...glassSurfaceMutedSx,
@@ -449,15 +449,27 @@ export const CheckoutPage = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-      <Stack spacing={1.25} sx={{ mb: 4 }}>
-        <SectionBadge label="ชำระเงิน" />
-        <Typography variant="h2" sx={{ maxWidth: 760 }}>
-          ยืนยันรายการสั่งซื้อของคุณก่อนชำระเงิน
-        </Typography>
-        <Typography color="text.secondary" sx={{ maxWidth: 700 }}>
-          ตรวจสอบข้อมูลผู้ซื้อ เลือกวิธีชำระเงิน และสรุปรายการซอร์สโค้ดหรือเทมเพลตที่พร้อมดาวน์โหลดทันที
-        </Typography>
-      </Stack>
+      <Paper
+        sx={{
+          mb: 4,
+          p: { xs: 3, md: 4.5 },
+          borderRadius: uiRadius.xl,
+          background:
+            'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
+        }}
+      >
+        <Stack spacing={2.25}>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <SectionBadge label="ชำระเงิน" />
+          </Box>
+          <Typography variant="h2" sx={{ maxWidth: 760 }}>
+            ยืนยันรายการสั่งซื้อของคุณก่อนชำระเงิน
+          </Typography>
+          <Typography color="text.secondary" sx={{ maxWidth: 700 }}>
+            ตรวจสอบข้อมูลผู้ซื้อ เลือกวิธีชำระเงิน และสรุปรายการซอร์สโค้ดหรือเทมเพลตที่พร้อมดาวน์โหลดทันที
+          </Typography>
+        </Stack>
+      </Paper>
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 7 }}>
@@ -505,24 +517,28 @@ export const CheckoutPage = () => {
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Paper
+                    <TextField
+                      fullWidth
+                      label="ยืนยันผ่านบัญชี Google"
+                      value={user.email}
                       sx={{
-                        ...metricSurfaceSx,
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
+                        '& .MuiInputLabel-root': {
+                          color: 'text.secondary',
+                        },
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: 'rgba(17, 17, 17, 0.04)',
+                        },
+                        '& .MuiOutlinedInput-input': {
+                          color: 'text.secondary',
+                          WebkitTextFillColor: 'rgba(106, 106, 112, 1)',
+                        },
                       }}
-                    >
-                      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                        <EmailRoundedIcon />
-                        <Box>
-                          <Typography sx={{ fontWeight: 700 }}>ยืนยันผ่านบัญชี Google</Typography>
-                          <Typography color="text.secondary">
-                            {user.email}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </Paper>
+                      slotProps={{
+                        htmlInput: {
+                          readOnly: true,
+                        },
+                      }}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
                     <TextField

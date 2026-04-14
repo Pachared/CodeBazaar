@@ -365,21 +365,6 @@ const AuthenticatedProfileContent = ({
             </Stack>
           </Paper>
 
-          <Paper
-            sx={{
-              p: 3,
-              borderRadius: uiRadius.xl,
-              backgroundColor: 'rgba(255, 255, 255, 0.74)',
-            }}
-          >
-            <Stack spacing={1.4}>
-              <SectionBadge label="การเข้าสู่ระบบ" />
-              <Typography variant="h6">เชื่อมต่อด้วย Google เท่านั้น</Typography>
-              <Typography color="text.secondary">
-                ข้อมูลอีเมลและสถานะบัญชีในหน้านี้ผูกกับระบบล็อกอินแบบสมมุติที่ใช้งานอยู่ในเครื่องนี้
-              </Typography>
-            </Stack>
-          </Paper>
         </Stack>
       </Grid>
 
