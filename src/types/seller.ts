@@ -31,3 +31,19 @@ export interface SellerListingResponse {
   listingId: string
   status: SellerListingMode
 }
+
+export interface SellerOrder {
+  id: string
+  orderId: string
+  productId: string
+  productTitle: string
+  productCategory: string
+  buyerName: string
+  buyerEmail: string
+  purchasedAt: string
+  amount: number
+  paymentMethodLabel: string
+  licenseLabel: string
+  deliveryLabel: string
+  statusLabel: string
+}

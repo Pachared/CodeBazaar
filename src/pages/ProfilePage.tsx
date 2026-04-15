@@ -3,7 +3,7 @@ import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
 import GoogleIcon from '@mui/icons-material/Google'
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
-import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
+import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
 import {
   Box,
   Button,
@@ -25,7 +25,7 @@ import { IOSSwitch } from '@/components/common/IOSSwitch'
 import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
-import { glassSurfaceMutedSx, metricSurfaceSx, uiRadius } from '@/theme/uiTokens'
+import { glassSurfaceMutedSx, uiRadius } from '@/theme/uiTokens'
 import type { AuthProfileUpdate, AuthSessionUser } from '@/types/auth'
 
 type ProfileFormState = Pick<
@@ -33,10 +33,6 @@ type ProfileFormState = Pick<
   | 'name'
   | 'phoneNumber'
   | 'storeName'
-  | 'headline'
-  | 'bio'
-  | 'website'
-  | 'location'
   | 'bankName'
   | 'bankAccountNumber'
   | 'bankBookImageName'
@@ -64,10 +60,6 @@ const createProfileFormState = (user: AuthSessionUser): ProfileFormState => ({
   name: user.name,
   phoneNumber: user.phoneNumber,
   storeName: user.storeName,
-  headline: user.headline,
-  bio: user.bio,
-  website: user.website,
-  location: user.location,
   bankName: user.bankName,
   bankAccountNumber: user.bankAccountNumber,
   bankBookImageName: user.bankBookImageName,
@@ -182,14 +174,12 @@ const SellerDocumentUploadCard = ({
 interface AuthenticatedProfileContentProps {
   user: AuthSessionUser
   onSave: (profile: AuthProfileUpdate) => void
-  onOpenSellerAuth: () => void
   onSignOut: () => void
 }
 
 const AuthenticatedProfileContent = ({
   user,
   onSave,
-  onOpenSellerAuth,
   onSignOut,
 }: AuthenticatedProfileContentProps) => {
   const [form, setForm] = useState(() => createProfileFormState(user))
@@ -201,10 +191,6 @@ const AuthenticatedProfileContent = ({
     form.name !== user.name ||
     form.phoneNumber !== user.phoneNumber ||
     form.storeName !== user.storeName ||
-    form.headline !== user.headline ||
-    form.bio !== user.bio ||
-    form.website !== user.website ||
-    form.location !== user.location ||
     form.bankName !== user.bankName ||
     form.bankAccountNumber !== user.bankAccountNumber ||
     form.bankBookImageName !== user.bankBookImageName ||
@@ -264,10 +250,6 @@ const AuthenticatedProfileContent = ({
       name: form.name.trim() || user.name,
       phoneNumber: form.phoneNumber.trim(),
       storeName: form.storeName.trim(),
-      headline: form.headline.trim(),
-      bio: form.bio.trim(),
-      website: form.website.trim(),
-      location: form.location.trim(),
       bankName: form.bankName.trim(),
       bankAccountNumber: form.bankAccountNumber.trim(),
       bankBookImageName: form.bankBookImageName.trim(),
@@ -313,12 +295,6 @@ const AuthenticatedProfileContent = ({
                 <Typography color="text.secondary">{user.email}</Typography>
               </Stack>
 
-              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-                <SectionBadge label={accountTypeLabel} />
-                <SectionBadge label="Google" />
-                {user.isMock ? <SectionBadge label="บัญชีทดลอง" /> : null}
-              </Stack>
-
               <Divider />
 
               <Stack spacing={1.2}>
@@ -358,20 +334,12 @@ const AuthenticatedProfileContent = ({
                   <Button
                     variant="outlined"
                     component={RouterLink}
-                    to="/seller"
-                    endIcon={<ArrowOutwardRoundedIcon />}
+                    to="/seller/orders"
+                    startIcon={<ReceiptLongRoundedIcon />}
                   >
-                    ไปที่ศูนย์ผู้ขาย
+                    คำสั่งซื้อของร้าน
                   </Button>
-                ) : (
-                  <Button
-                    variant="outlined"
-                    startIcon={<StorefrontRoundedIcon />}
-                    onClick={onOpenSellerAuth}
-                  >
-                    เปิดบัญชีผู้ขาย
-                  </Button>
-                )}
+                ) : null}
                 <Button variant="outlined" startIcon={<LogoutRoundedIcon />} onClick={onSignOut}>
                   ออกจากระบบ
                 </Button>
@@ -425,41 +393,6 @@ const AuthenticatedProfileContent = ({
                     value={form.phoneNumber}
                     onChange={(event) => handleFieldChange('phoneNumber', event.target.value)}
                     placeholder="08X-XXX-XXXX"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="เว็บไซต์หรือพอร์ตโฟลิโอ"
-                    value={form.website}
-                    onChange={(event) => handleFieldChange('website', event.target.value)}
-                    placeholder="https://"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="เมืองหรือที่อยู่"
-                    value={form.location}
-                    onChange={(event) => handleFieldChange('location', event.target.value)}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
-                    label="ข้อความสั้นใต้ชื่อ"
-                    value={form.headline}
-                    onChange={(event) => handleFieldChange('headline', event.target.value)}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={4}
-                    label="เกี่ยวกับคุณหรือเกี่ยวกับร้าน"
-                    value={form.bio}
-                    onChange={(event) => handleFieldChange('bio', event.target.value)}
                   />
                 </Grid>
               </Grid>
@@ -656,8 +589,8 @@ export const ProfilePage = () => {
             จัดการข้อมูลบัญชี ข้อมูลร้าน และรูปแบบการแจ้งเตือนในหน้าเดียว
           </Typography>
           <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 760, fontWeight: 500 }}>
-            หน้านี้ออกแบบไว้สำหรับจัดการข้อมูลบัญชีที่ใช้งานอยู่บน CodeBazaar
-            ทั้งฝั่งผู้ซื้อและผู้ขาย โดยข้อมูลจะถูกเก็บไว้ในเครื่องเพื่อใช้ทดสอบ flow ก่อนเชื่อม API จริง
+            ใช้หน้านี้สำหรับอัปเดตชื่อโปรไฟล์ เบอร์โทร ข้อมูลร้าน เอกสารผู้ขาย
+            และการแจ้งเตือนของบัญชีที่คุณกำลังใช้งานอยู่บน CodeBazaar
           </Typography>
         </Stack>
       </Paper>
@@ -667,7 +600,6 @@ export const ProfilePage = () => {
           key={`${user.id}-${user.role}`}
           user={user}
           onSave={updateProfile}
-          onOpenSellerAuth={() => openAuthDialog('seller-register')}
           onSignOut={handleSignOut}
         />
       ) : (
@@ -680,15 +612,11 @@ export const ProfilePage = () => {
           }}
         >
           <Stack spacing={2.5} sx={{ maxWidth: 720 }}>
-            <Box sx={{ ...metricSurfaceSx, maxWidth: 420 }}>
-              <Typography variant="body2" color="text.secondary">
-                ยังไม่มีบัญชีที่กำลังใช้งานอยู่
-              </Typography>
-            </Box>
+            <SectionBadge label="ยังไม่มีบัญชีที่กำลังใช้งานอยู่" />
             <Typography variant="h4">เข้าสู่ระบบก่อนเพื่อแก้ไขข้อมูลโปรไฟล์และตั้งค่าบัญชี</Typography>
             <Typography color="text.secondary">
-              คุณสามารถเข้าสู่ระบบแบบสมมุติด้วย Google ก่อน แล้วค่อยกลับมาแก้ไขชื่อ ข้อมูลร้าน
-              และการแจ้งเตือนในหน้านี้ได้ทันที
+              เข้าสู่ระบบด้วยบัญชี Google เพื่อเริ่มตั้งค่าชื่อผู้ใช้ ข้อมูลร้าน เบอร์โทร
+              และรายละเอียดบัญชีอื่น ๆ ที่จะถูกนำไปใช้ต่อในขั้นตอนซื้อขายของระบบ
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
               <Button

@@ -5,10 +5,6 @@ export const createDefaultProfileFields = (role: AuthUserRole): AuthProfileField
     return {
       phoneNumber: '',
       storeName: 'ร้านผู้ขายทดลอง',
-      headline: 'ขายซอร์สโค้ดและเทมเพลตพร้อมใช้งาน',
-      bio: 'โปรไฟล์นี้ใช้สำหรับทดสอบหน้าจัดการบัญชีและข้อมูลร้านค้าบน CodeBazaar',
-      website: '',
-      location: 'กรุงเทพมหานคร',
       bankName: '',
       bankAccountNumber: '',
       bankBookImageName: '',
@@ -23,10 +19,6 @@ export const createDefaultProfileFields = (role: AuthUserRole): AuthProfileField
   return {
     phoneNumber: '',
     storeName: '',
-    headline: 'นักพัฒนาที่กำลังเลือกซื้อ source code และ template สำหรับต่อยอดงาน',
-    bio: 'บัญชีนี้ใช้สำหรับทดสอบการซื้อสินค้าและหน้าตั้งค่าโปรไฟล์บน CodeBazaar',
-    website: '',
-    location: 'กรุงเทพมหานคร',
     bankName: '',
     bankAccountNumber: '',
     bankBookImageName: '',

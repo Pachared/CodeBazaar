@@ -1,6 +1,12 @@
 import { hasRemoteApi } from '@/config/env'
+import { mockSellerOrders } from '@/data/mockSellerOrders'
 import type { AuthActionResponse } from '@/types/auth'
-import type { SellerListingInput, SellerListingMode, SellerListingResponse } from '@/types/seller'
+import type {
+  SellerListingInput,
+  SellerListingMode,
+  SellerListingResponse,
+  SellerOrder,
+} from '@/types/seller'
 import { createMockAuthResponse, createMockSellerSession } from '@/utils/mockAuth'
 import { mockDelay } from './mockDelay'
 import { apiClient } from './client'
@@ -43,6 +49,16 @@ export const sellerService = {
       mode,
     })
 
+    return data
+  },
+
+  async getSellerOrders(signal?: AbortSignal): Promise<SellerOrder[]> {
+    if (!hasRemoteApi) {
+      await mockDelay(300, signal)
+      return mockSellerOrders
+    }
+
+    const { data } = await apiClient.get<SellerOrder[]>('/seller/orders', { signal })
     return data
   },
 }
