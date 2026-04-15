@@ -4,6 +4,7 @@ import { CheckoutPage } from '@/pages/CheckoutPage'
 import { DownloadsPage } from '@/pages/DownloadsPage'
 import { HomePage } from '@/pages/HomePage'
 import { ProfilePage } from '@/pages/ProfilePage'
+import { ProductDetailPage } from '@/pages/ProductDetailPage'
 import { SellerPage } from '@/pages/SellerPage'
 import { SellerStudioPage } from '@/pages/SellerStudioPage'
 
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
       {
         path: 'downloads',
         element: <DownloadsPage />,
+      },
+      {
+        path: 'products/:productId',
+        element: <ProductDetailPage />,
       },
       {
         path: 'seller',

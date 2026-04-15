@@ -12,9 +12,14 @@ import {
 import { Link as RouterLink, useOutletContext } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
 import { SectionBadge } from '@/components/common/SectionBadge'
-import { sellerCatalogTypes, sellerFeatures, sellerSteps } from '@/constants/marketplace'
+import {
+  sellerCatalogTypes,
+  sellerFeatures,
+  sellerSteps,
+  sellerUploadChecklist,
+} from '@/constants/marketplace'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
-import { uiRadius } from '@/theme/uiTokens'
+import { glassSurfaceMutedSx, uiRadius } from '@/theme/uiTokens'
 
 const sellerPrimaryActionSx = {
   px: 3.25,
@@ -100,14 +105,97 @@ export const SellerPage = () => {
         </Stack>
       </Paper>
 
+      <Paper sx={{ p: 3, borderRadius: uiRadius.xl }}>
+        <Stack spacing={2.5}>
+          <Box>
+            <SectionBadge label="เริ่มต้นก่อนลงขาย" />
+            <Typography variant="h4" sx={{ mt: 1.25 }}>
+              ดูลำดับการทำงานของผู้ขายก่อน เพื่อรู้ว่าควรเริ่มจากอะไร
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              กล่องนี้สรุป flow จริงของระบบตั้งแต่เปิดบัญชีผู้ขาย ตั้งค่าโปรไฟล์ เตรียมข้อมูลสินค้า
+              ไปจนถึงเข้า Seller Studio เพื่อส่งรายการขาย
+            </Typography>
+          </Box>
+
+          <Grid container spacing={2}>
+            {sellerSteps.map((step, index) => (
+              <Grid key={step.title} size={{ xs: 12, md: 6, lg: 3 }}>
+                <Paper
+                  sx={{
+                    p: 2.5,
+                    borderRadius: uiRadius.lg,
+                    height: '100%',
+                    backgroundColor: 'rgba(255,255,255,0.72)',
+                  }}
+                >
+                  <Stack spacing={1.25}>
+                    <Typography variant="body2" color="text.secondary">
+                      ขั้นตอน {index + 1}
+                    </Typography>
+                    <Typography variant="h6">{step.title}</Typography>
+                    <Typography color="text.secondary">{step.description}</Typography>
+                  </Stack>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Stack>
+      </Paper>
+
+      <Paper
+        sx={{
+          p: { xs: 3, md: 3.5 },
+          borderRadius: uiRadius.xl,
+          background:
+            'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
+        }}
+      >
+        <Stack spacing={2.25}>
+          <Box>
+            <SectionBadge label="เตรียมก่อนเข้า Studio" />
+            <Typography variant="h4" sx={{ mt: 1.25 }}>
+              สิ่งที่ควรมีในแพ็กเกจก่อนกดลงขายสินค้า
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              รายการด้านล่างคือข้อมูลหลักที่ควรเตรียมไว้ล่วงหน้า เพื่อให้ตอนเข้าหน้าสตูดิโอสามารถกรอกได้ครบ
+              และทำให้หน้ารายละเอียดสินค้าของคุณดูชัดเจนตั้งแต่ครั้งแรก
+            </Typography>
+          </Box>
+
+          <Grid container spacing={1.5}>
+            {sellerUploadChecklist.map((item) => (
+              <Grid key={item} size={{ xs: 12, md: 6, lg: 4 }}>
+                <Paper
+                  sx={{
+                    ...glassSurfaceMutedSx,
+                    p: 2,
+                    borderRadius: uiRadius.lg,
+                    height: '100%',
+                  }}
+                >
+                  <Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                    {item}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Stack>
+      </Paper>
+
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 7 }}>
           <Paper sx={{ p: 3, borderRadius: uiRadius.xl, height: '100%' }}>
             <Stack spacing={2.5}>
               <Box>
-                <SectionBadge label="สินค้าที่ลงขายได้" />
+                <SectionBadge label="เลือกประเภทสินค้าที่จะขาย" />
                 <Typography variant="h4" sx={{ mt: 1.25 }}>
-                  รองรับทั้งซอร์สโค้ด เทมเพลต และชุดคอมโพเนนต์สำหรับต่อยอดงานจริง
+                  ดูก่อนว่าระบบนี้รองรับสินค้ารูปแบบไหนบ้าง
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>
+                  หลังจากเตรียมข้อมูลครบแล้ว ให้เลือกแนวสินค้าที่ใกล้กับสิ่งที่คุณจะลงขายที่สุด
+                  เพื่อกำหนดวิธีอธิบายแพ็กเกจและตั้งความคาดหวังของผู้ซื้อให้ตรงกัน
                 </Typography>
               </Box>
 
@@ -137,9 +225,13 @@ export const SellerPage = () => {
           <Paper sx={{ p: 3, borderRadius: uiRadius.xl, height: '100%' }}>
             <Stack spacing={2.5}>
               <Box>
-                <SectionBadge label="ทำไมผู้ขายเลือกแพลตฟอร์มนี้" />
+                <SectionBadge label="สิ่งที่ระบบช่วยผู้ขาย" />
                 <Typography variant="h4" sx={{ mt: 1.25 }}>
-                  ลดขั้นตอนเริ่มต้น แต่ยังวางโครงไว้พร้อมสำหรับระบบขายจริง
+                  ปิดท้ายด้วยภาพรวมว่าระบบนี้ช่วยให้คุณเริ่มขายง่ายขึ้นอย่างไร
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>
+                  ส่วนนี้อธิบายจากฟีเจอร์ที่มีอยู่จริงในระบบตอนนี้ ว่าจะช่วยให้ผู้ขายจัดการข้อมูล
+                  และเชื่อมไปยังหน้าที่ผู้ซื้อเห็นได้อย่างไร
                 </Typography>
               </Box>
 
@@ -156,42 +248,6 @@ export const SellerPage = () => {
                   </Paper>
                 ))}
               </Stack>
-            </Stack>
-          </Paper>
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          <Paper sx={{ p: 3, borderRadius: uiRadius.xl }}>
-            <Stack spacing={2.5}>
-              <Box>
-                <SectionBadge label="ขั้นตอนเริ่มต้นสำหรับผู้ขาย" />
-                <Typography variant="h4" sx={{ mt: 1.25 }}>
-                  เปิดร้านและเริ่มลงขายได้ตามลำดับขั้นที่ชัดเจน
-                </Typography>
-              </Box>
-
-              <Grid container spacing={2}>
-                {sellerSteps.map((step, index) => (
-                  <Grid key={step.title} size={{ xs: 12, md: 6, lg: 3 }}>
-                    <Paper
-                      sx={{
-                        p: 2.5,
-                        borderRadius: uiRadius.lg,
-                        height: '100%',
-                        backgroundColor: 'rgba(255,255,255,0.72)',
-                      }}
-                    >
-                      <Stack spacing={1.25}>
-                        <Typography variant="body2" color="text.secondary">
-                          ขั้นตอน {index + 1}
-                        </Typography>
-                        <Typography variant="h6">{step.title}</Typography>
-                        <Typography color="text.secondary">{step.description}</Typography>
-                      </Stack>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
             </Stack>
           </Paper>
         </Grid>

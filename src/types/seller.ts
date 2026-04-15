@@ -10,6 +10,8 @@ export interface SellerListingInput {
   summary: string
   description: string
   highlights: string[]
+  idealFor: string[]
+  supportInfo: string
   stack: string[]
   version: string
   demoUrl: string

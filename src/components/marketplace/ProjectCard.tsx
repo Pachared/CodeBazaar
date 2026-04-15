@@ -1,3 +1,4 @@
+import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded'
 import {
@@ -11,6 +12,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { useMarketplace } from '@/app/providers/useMarketplace'
 import { CartIcon } from '@/components/cart/CartIcon'
 import { uiRadius } from '@/theme/uiTokens'
@@ -166,6 +168,14 @@ export const ProjectCard = ({ product }: ProjectCardProps) => {
               </Stack>
 
               <Stack spacing={1.25} sx={{ mt: 'auto', pt: 2.5 }}>
+                <Button
+                  variant="outlined"
+                  component={RouterLink}
+                  to={`/products/${product.id}`}
+                  endIcon={<ArrowOutwardRoundedIcon />}
+                >
+                  ดูรายละเอียด
+                </Button>
                 <Button
                   variant="outlined"
                   startIcon={<CartIcon />}

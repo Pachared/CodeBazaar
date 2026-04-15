@@ -3,12 +3,19 @@ export interface Product {
   categoryId: string
   title: string
   summary: string
+  fullDescription: string
   category: string
   price: number
   rating: number
   sales: number
   tags: string[]
   stack: string[]
+  featureHighlights: string[]
+  includedItems: string[]
+  idealFor: string[]
+  supportInfo: string
+  versionLabel: string
+  fileFormatLabel: string
   authorName: string
   updatedAt: string
   updatedDaysAgo: number

@@ -1,10 +1,13 @@
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded'
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded'
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
 import FolderZipRoundedIcon from '@mui/icons-material/FolderZipRounded'
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded'
 import LayersRoundedIcon from '@mui/icons-material/LayersRounded'
 import SellRoundedIcon from '@mui/icons-material/SellRounded'
+import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded'
 import {
   Box,
   Button,
@@ -25,16 +28,18 @@ import { useAuth } from '@/app/providers/useAuth'
 import { useNotification } from '@/app/providers/useNotification'
 import { IOSSwitch } from '@/components/common/IOSSwitch'
 import { SectionBadge } from '@/components/common/SectionBadge'
+import { ProjectPreview } from '@/components/marketplace/ProjectPreview'
 import {
   sellerAssetTypeOptions,
   sellerUploadCategoryOptions,
-  sellerUploadChecklist,
   sellerUploadLicenseOptions,
 } from '@/constants/marketplace'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
 import { sellerService } from '@/services/api/seller.service'
 import { glassSurfaceMutedSx, metricSurfaceSx, uiRadius } from '@/theme/uiTokens'
+import type { Product } from '@/types/marketplace'
 import type { SellerAssetType, SellerListingInput, SellerListingMode } from '@/types/seller'
+import { formatCurrency } from '@/utils/formatCurrency'
 
 interface SellerStudioFormState {
   assetType: SellerAssetType
@@ -45,6 +50,8 @@ interface SellerStudioFormState {
   summary: string
   description: string
   highlights: string
+  idealFor: string
+  supportInfo: string
   stackInput: string
   version: string
   demoUrl: string
@@ -67,6 +74,8 @@ const defaultSellerStudioForm: SellerStudioFormState = {
   summary: '',
   description: '',
   highlights: '',
+  idealFor: '',
+  supportInfo: '',
   stackInput: 'React, TypeScript, MUI',
   version: '1.0.0',
   demoUrl: '',
@@ -202,6 +211,53 @@ const DeliveryOptionCard = ({
   </Paper>
 )
 
+const PreviewMetaRow = ({ label, value }: { label: string; value: string }) => (
+  <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+    <Typography color="text.secondary">{label}</Typography>
+    <Typography sx={{ fontWeight: 700, textAlign: 'right' }}>{value}</Typography>
+  </Stack>
+)
+
+const PreviewListSection = ({
+  badge,
+  title,
+  icon,
+  items,
+  emptyMessage,
+}: {
+  badge: string
+  title: string
+  icon: ReactNode
+  items: string[]
+  emptyMessage: string
+}) => (
+  <Paper sx={{ ...metricSurfaceSx }}>
+    <Stack spacing={1.35}>
+      <Box>
+        <SectionBadge label={badge} />
+        <Typography variant="h6" sx={{ mt: 1 }}>
+          {title}
+        </Typography>
+      </Box>
+
+      {items.length > 0 ? (
+        <Stack spacing={1}>
+          {items.map((item) => (
+            <Stack key={item} direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
+              <Box sx={{ mt: 0.15, color: '#111111' }}>{icon}</Box>
+              <Typography color="text.secondary" sx={{ lineHeight: 1.75 }}>
+                {item}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
+      ) : (
+        <Typography color="text.secondary">{emptyMessage}</Typography>
+      )}
+    </Stack>
+  </Paper>
+)
+
 export const SellerStudioPage = () => {
   const { user } = useAuth()
   const { notify } = useNotification()
@@ -212,8 +268,53 @@ export const SellerStudioPage = () => {
   const isAuthenticated = Boolean(user)
   const isSeller = user?.role === 'seller'
   const parsedPrice = Number(form.price)
+  const highlightValues = splitByLine(form.highlights)
+  const idealForValues = splitByLine(form.idealFor)
   const stackValues = splitByComma(form.stackInput)
   const includedFileValues = splitByLine(form.includedFiles)
+  const categoryLabel = findLabel(sellerUploadCategoryOptions, form.categoryId)
+  const licenseLabel = findLabel(sellerUploadLicenseOptions, form.licenseId)
+  const deliveryLabel = form.instantDelivery
+    ? 'ดาวน์โหลดได้ทันที'
+    : form.sourceIncluded
+      ? 'รวมไฟล์ต้นฉบับ'
+      : form.documentationIncluded
+        ? 'รวมเอกสารประกอบ'
+        : 'จัดส่งหลังตรวจสอบ'
+  const fileFormatLabel = [
+    form.packageFileName ? 'ไฟล์หลัก' : null,
+    form.coverFileName ? 'ภาพพรีวิว' : null,
+    form.docsFileName ? 'เอกสาร' : null,
+  ]
+    .filter(Boolean)
+    .join(' + ') || 'ยังไม่ได้แนบไฟล์'
+  const previewProduct: Product = {
+    id: 'seller-studio-preview',
+    categoryId: form.categoryId,
+    title: form.title.trim() || 'ชื่อรายการขายของคุณ',
+    summary: form.summary.trim() || 'คำอธิบายสั้นของแพ็กเกจจะแสดงตรงส่วนนี้',
+    fullDescription:
+      form.description.trim() || 'รายละเอียดสินค้าแบบเต็มจะไปแสดงในหน้ารายละเอียดรายการขาย',
+    category: categoryLabel,
+    price: Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 0,
+    rating: 4.9,
+    sales: 0,
+    tags: highlightValues.slice(0, 2).length > 0 ? highlightValues.slice(0, 2) : ['พร้อมใช้', 'รอตั้งค่า'],
+    stack: stackValues.length > 0 ? stackValues : ['React', 'TypeScript', 'MUI'],
+    featureHighlights: highlightValues,
+    includedItems: includedFileValues,
+    idealFor: idealForValues,
+    supportInfo: form.supportInfo.trim() || 'ข้อมูลเพิ่มเติมหรือเงื่อนไขการใช้งานจะไปแสดงในส่วนนี้',
+    versionLabel: form.version.trim() || '1.0.0',
+    fileFormatLabel,
+    authorName: user?.storeName?.trim() || user?.name || 'บัญชีผู้ขาย',
+    updatedAt: 'ตัวอย่างก่อนส่งขาย',
+    updatedDaysAgo: 0,
+    delivery: deliveryLabel,
+    license: licenseLabel,
+    licenseId: form.licenseId,
+    verified: true,
+  }
   const isFormValid =
     form.title.trim().length > 0 &&
     form.summary.trim().length > 0 &&
@@ -269,7 +370,9 @@ export const SellerStudioPage = () => {
       price: parsedPrice,
       summary: form.summary.trim(),
       description: form.description.trim(),
-      highlights: splitByLine(form.highlights),
+      highlights: highlightValues,
+      idealFor: idealForValues,
+      supportInfo: form.supportInfo.trim(),
       stack: stackValues,
       version: form.version.trim(),
       demoUrl: form.demoUrl.trim(),
@@ -419,27 +522,6 @@ export const SellerStudioPage = () => {
         </Stack>
       </Paper>
 
-      <Paper sx={{ p: { xs: 3, md: 3.5 }, borderRadius: uiRadius.xl }}>
-        <Stack spacing={2}>
-          <Box>
-            <SectionBadge label="สิ่งที่ควรมีในแพ็กเกจ" />
-            <Typography variant="h5" sx={{ mt: 1.25 }}>
-              เตรียมข้อมูลเหล่านี้ให้พร้อมก่อนเริ่มลงขายสินค้า
-            </Typography>
-          </Box>
-          <Stack spacing={1.1}>
-            {sellerUploadChecklist.map((item) => (
-              <Paper
-                key={item}
-                sx={{ ...glassSurfaceMutedSx, p: 1.6, borderRadius: uiRadius.md }}
-              >
-                <Typography>{item}</Typography>
-              </Paper>
-            ))}
-          </Stack>
-        </Stack>
-      </Paper>
-
       <Grid
         container
         spacing={3}
@@ -453,6 +535,10 @@ export const SellerStudioPage = () => {
                   <SectionBadge label="ข้อมูลรายการขาย" />
                   <Typography variant="h4" sx={{ mt: 1.25 }}>
                     ตั้งค่ารายละเอียดหลักของซอร์สโค้ดหรือเทมเพลตที่ต้องการลงขาย
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    ข้อมูลในส่วนนี้จะถูกนำไปใช้ทั้งบนการ์ดรายการขายและหน้ารายละเอียดสินค้า
+                    เพื่อให้ผู้ซื้อเห็นเนื้อหาตรงกับที่คุณกรอกไว้
                   </Typography>
                 </Box>
 
@@ -563,10 +649,32 @@ export const SellerStudioPage = () => {
                       fullWidth
                       multiline
                       minRows={4}
+                      label="เหมาะกับใคร"
+                      value={form.idealFor}
+                      onChange={(event) => handleFieldChange('idealFor', event.target.value)}
+                      placeholder={'ทีมที่ต้องการเริ่มระบบขายไฟล์ดิจิทัล\nฟรีแลนซ์ที่ต้องการ base project พร้อมต่อยอด\nเจ้าของแพลตฟอร์มที่อยากเปิด MVP ได้เร็ว'}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={4}
                       label="รายการไฟล์ที่รวมอยู่"
                       value={form.includedFiles}
                       onChange={(event) => handleFieldChange('includedFiles', event.target.value)}
                       placeholder={'src/\npublic/\nREADME.md'}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={4}
+                      label="ข้อมูลเพิ่มเติมสำหรับหน้ารายละเอียด"
+                      value={form.supportInfo}
+                      onChange={(event) => handleFieldChange('supportInfo', event.target.value)}
+                      placeholder="บอกขอบเขตการใช้งาน การต่อยอด หรือข้อสังเกตเพิ่มเติมที่ผู้ซื้อควรรู้ก่อนตัดสินใจ"
                     />
                   </Grid>
 
@@ -720,35 +828,121 @@ export const SellerStudioPage = () => {
               position: { lg: 'sticky' },
               top: { lg: 104 },
               alignSelf: { lg: 'flex-start' },
+              maxHeight: { lg: 'calc(100vh - 124px)' },
             }}
           >
-            <Paper sx={{ p: 3, borderRadius: uiRadius.xl }}>
-              <Stack spacing={2.25}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: uiRadius.xl,
+                overflowY: { lg: 'auto' },
+              }}
+            >
+              <Stack spacing={2.5}>
                 <Box>
-                  <SectionBadge label="สรุปก่อนส่งขาย" />
+                  <SectionBadge label="ตัวอย่างหน้ารายละเอียด" />
                   <Typography variant="h5" sx={{ mt: 1.25 }}>
-                    ตรวจรายละเอียดของรายการขายก่อนบันทึกหรือเผยแพร่
+                    ข้อมูลที่กรอกจะถูกจัดวางประมาณนี้ในหน้าที่ผู้ซื้อเข้ามาดูรายละเอียด
                   </Typography>
                 </Box>
 
-                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-                  {stackValues.map((stack) => (
-                    <Chip key={stack} label={stack} />
-                  ))}
+                <Stack spacing={2}>
+                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                    <Chip
+                      icon={<VerifiedRoundedIcon />}
+                      label="ผู้ขายยืนยันแล้ว"
+                      sx={{ backgroundColor: '#111111', color: 'common.white' }}
+                    />
+                    <SectionBadge label={categoryLabel} />
+                    <SectionBadge label={deliveryLabel} />
+                  </Stack>
+
+                  <ProjectPreview product={previewProduct} />
+
+                  <Box>
+                    <Typography variant="h4" sx={{ lineHeight: 1.15 }}>
+                      {previewProduct.title}
+                    </Typography>
+                    <Typography color="text.secondary" sx={{ mt: 1 }}>
+                      {previewProduct.summary}
+                    </Typography>
+                  </Box>
+
+                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                    {previewProduct.stack.map((stack) => (
+                      <Chip key={stack} label={stack} />
+                    ))}
+                  </Stack>
                 </Stack>
 
-                <Divider />
+                <Paper sx={{ ...metricSurfaceSx }}>
+                  <Stack spacing={1.1}>
+                    <PreviewMetaRow
+                      label="ประเภทสินค้า"
+                      value={findLabel(sellerAssetTypeOptions, form.assetType)}
+                    />
+                    <PreviewMetaRow label="หมวดหมู่" value={categoryLabel} />
+                    <PreviewMetaRow label="ไลเซนส์" value={licenseLabel} />
+                    <PreviewMetaRow
+                      label="ราคา"
+                      value={previewProduct.price > 0 ? formatCurrency(previewProduct.price) : '-'}
+                    />
+                    <PreviewMetaRow label="เวอร์ชัน" value={previewProduct.versionLabel} />
+                    <PreviewMetaRow label="รูปแบบไฟล์" value={previewProduct.fileFormatLabel} />
+                  </Stack>
+                </Paper>
 
-                <Stack spacing={1.1}>
-                  <ReviewRow label="ประเภทสินค้า" value={findLabel(sellerAssetTypeOptions, form.assetType)} />
-                  <ReviewRow label="หมวดหมู่" value={findLabel(sellerUploadCategoryOptions, form.categoryId)} />
-                  <ReviewRow label="ไลเซนส์" value={findLabel(sellerUploadLicenseOptions, form.licenseId)} />
-                  <ReviewRow label="ราคา" value={parsedPrice > 0 ? `${parsedPrice.toLocaleString()} บาท` : '-'} />
-                  <ReviewRow label="ไฟล์หลัก" value={form.packageFileName ? 'พร้อมอัปโหลด' : 'ยังไม่เลือก'} />
-                  <ReviewRow label="ภาพปก" value={form.coverFileName ? 'มีไฟล์' : 'ยังไม่เลือก'} />
-                  <ReviewRow label="เอกสาร" value={form.docsFileName ? 'มีไฟล์' : 'ยังไม่เลือก'} />
-                </Stack>
+                <PreviewListSection
+                  badge="จุดเด่นของแพ็กเกจ"
+                  title="สิ่งที่รายการนี้ช่วยผู้ซื้อได้"
+                  icon={<CheckCircleRoundedIcon sx={{ fontSize: 18 }} />}
+                  items={highlightValues}
+                  emptyMessage="เพิ่มจุดเด่นของสินค้าเพื่อให้หน้ารายละเอียดดูน่าเชื่อถือและตัดสินใจซื้อง่ายขึ้น"
+                />
 
+                <PreviewListSection
+                  badge="สิ่งที่รวมมาให้"
+                  title="รายการไฟล์และองค์ประกอบในแพ็กเกจ"
+                  icon={<DownloadRoundedIcon sx={{ fontSize: 18 }} />}
+                  items={includedFileValues}
+                  emptyMessage="เพิ่มรายการไฟล์หรือองค์ประกอบที่รวมมาให้ เพื่อบอกขอบเขตของแพ็กเกจ"
+                />
+
+                <PreviewListSection
+                  badge="เหมาะกับใคร"
+                  title="ผู้ซื้อกลุ่มไหนควรเลือกแพ็กเกจนี้"
+                  icon={<CheckCircleRoundedIcon sx={{ fontSize: 18 }} />}
+                  items={idealForValues}
+                  emptyMessage="กรอกกลุ่มเป้าหมายหรือประเภทงานที่เหมาะกับสินค้า เพื่อให้หน้ารายละเอียดชัดขึ้น"
+                />
+
+                <Paper sx={{ ...metricSurfaceSx }}>
+                  <Stack spacing={1.35}>
+                    <Box>
+                      <SectionBadge label="ข้อมูลเพิ่มเติม" />
+                      <Typography variant="h6" sx={{ mt: 1 }}>
+                        ข้อความส่วนท้ายของหน้ารายละเอียด
+                      </Typography>
+                    </Box>
+                    <Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                      {previewProduct.supportInfo}
+                    </Typography>
+
+                    {form.demoUrl.trim() || form.supportUrl.trim() ? (
+                      <>
+                        <Divider />
+                        <Stack spacing={0.9}>
+                          {form.demoUrl.trim() ? (
+                            <ReviewRow label="ลิงก์เดโม" value="มีข้อมูลพร้อมแสดง" />
+                          ) : null}
+                          {form.supportUrl.trim() ? (
+                            <ReviewRow label="ลิงก์ support" value="มีข้อมูลพร้อมแสดง" />
+                          ) : null}
+                        </Stack>
+                      </>
+                    ) : null}
+                  </Stack>
+                </Paper>
               </Stack>
             </Paper>
           </Stack>
