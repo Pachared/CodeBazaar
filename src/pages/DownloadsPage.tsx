@@ -2,7 +2,6 @@ import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
 import GoogleIcon from '@mui/icons-material/Google'
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
-import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
 import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
 import {
   Box,
@@ -339,25 +338,6 @@ export const DownloadsPage = () => {
                       ไปหน้าตั้งค่าโปรไฟล์
                     </Button>
                   </Stack>
-                </Stack>
-              </Paper>
-
-              <Paper
-                sx={{
-                  ...glassSurfaceMutedSx,
-                  p: 2.5,
-                  borderRadius: uiRadius.xl,
-                }}
-              >
-                <Stack spacing={1.5}>
-                  <Stack direction="row" spacing={1.1} sx={{ alignItems: 'center' }}>
-                    <ReceiptLongRoundedIcon />
-                    <Typography variant="h6">คลังนี้ผูกกับคำสั่งซื้อของคุณ</Typography>
-                  </Stack>
-                  <Typography color="text.secondary">
-                    ทุกครั้งที่ชำระเงินสำเร็จ รายการจะถูกเพิ่มเข้าคลังดาวน์โหลดในเครื่องนี้ทันที
-                    เพื่อให้กลับมาโหลดใหม่ได้สะดวก
-                  </Typography>
                 </Stack>
               </Paper>
             </Stack>

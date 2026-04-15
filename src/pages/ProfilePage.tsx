@@ -31,6 +31,7 @@ import type { AuthProfileUpdate, AuthSessionUser } from '@/types/auth'
 type ProfileFormState = Pick<
   AuthSessionUser,
   | 'name'
+  | 'phoneNumber'
   | 'storeName'
   | 'headline'
   | 'bio'
@@ -61,6 +62,7 @@ const sellerBankOptions = [
 
 const createProfileFormState = (user: AuthSessionUser): ProfileFormState => ({
   name: user.name,
+  phoneNumber: user.phoneNumber,
   storeName: user.storeName,
   headline: user.headline,
   bio: user.bio,
@@ -197,6 +199,7 @@ const AuthenticatedProfileContent = ({
   const isSeller = user.role === 'seller'
   const isDirty =
     form.name !== user.name ||
+    form.phoneNumber !== user.phoneNumber ||
     form.storeName !== user.storeName ||
     form.headline !== user.headline ||
     form.bio !== user.bio ||
@@ -259,6 +262,7 @@ const AuthenticatedProfileContent = ({
   const handleSave = () => {
     const nextProfile: AuthProfileUpdate = {
       name: form.name.trim() || user.name,
+      phoneNumber: form.phoneNumber.trim(),
       storeName: form.storeName.trim(),
       headline: form.headline.trim(),
       bio: form.bio.trim(),
@@ -322,6 +326,7 @@ const AuthenticatedProfileContent = ({
                 <AccountMetaRow label="ผู้ให้บริการ" value="Google" />
                 <AccountMetaRow label="สถานะข้อมูล" value="บันทึกในเครื่อง" />
                 <AccountMetaRow label="อีเมลบัญชี" value={user.email} />
+                <AccountMetaRow label="เบอร์โทร" value={form.phoneNumber || 'ยังไม่ระบุ'} />
                 {isSeller ? (
                   <>
                     <AccountMetaRow
@@ -411,6 +416,15 @@ const AuthenticatedProfileContent = ({
                     value={form.storeName}
                     onChange={(event) => handleFieldChange('storeName', event.target.value)}
                     placeholder="ใส่เมื่อคุณต้องการขายผลงาน"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="เบอร์โทรติดต่อ"
+                    value={form.phoneNumber}
+                    onChange={(event) => handleFieldChange('phoneNumber', event.target.value)}
+                    placeholder="08X-XXX-XXXX"
                   />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>

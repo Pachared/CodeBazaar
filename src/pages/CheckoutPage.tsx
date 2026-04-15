@@ -100,7 +100,7 @@ const paymentMethodLabelMap: Record<CheckoutPaymentMethod, string> = paymentMeth
 const createCheckoutFormState = (user: AuthSessionUser | null): CheckoutFormState => ({
   customerName: user?.name ?? '',
   customerEmail: user?.email ?? '',
-  customerPhone: '',
+  customerPhone: user?.phoneNumber ?? '',
   companyName: user?.storeName ?? '',
   taxId: '',
   note: '',
@@ -202,7 +202,7 @@ const CheckoutSuccessView = ({ order }: { order: CompletedOrderState }) => {
   const paymentMethodLabel = paymentMethodLabelMap[order.response.paymentMethod]
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
       <Paper
         sx={{
           ...glassSurfaceMutedSx,
@@ -279,7 +279,7 @@ const CheckoutSuccessView = ({ order }: { order: CompletedOrderState }) => {
 }
 
 export const CheckoutPage = () => {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, updateProfile } = useAuth()
   const { addCompletedOrderToLibrary } = useDownloads()
   const { cartItems, cartTotal, clearCart, openCart } = useMarketplace()
   const { notify } = useNotification()
@@ -354,6 +354,12 @@ export const CheckoutPage = () => {
     try {
       const response = await checkoutService.submitOrder(payload)
       const purchasedAt = new Date().toISOString()
+
+      if (payload.customerPhone !== user.phoneNumber) {
+        updateProfile({
+          phoneNumber: payload.customerPhone,
+        })
+      }
 
       addCompletedOrderToLibrary({
         orderId: response.orderId,
@@ -469,7 +475,7 @@ export const CheckoutPage = () => {
         }}
       >
         <Stack spacing={2.25}>
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Box>
             <SectionBadge label="ชำระเงิน" />
           </Box>
           <Typography variant="h2" sx={{ maxWidth: 760 }}>

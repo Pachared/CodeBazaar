@@ -5,6 +5,7 @@ export type AuthDialogMode = 'buyer-login' | 'buyer-register' | 'seller-register
 export type AuthUserRole = 'buyer' | 'seller'
 
 export interface AuthProfileFields {
+  phoneNumber: string
   storeName: string
   headline: string
   bio: string
