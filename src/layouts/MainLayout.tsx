@@ -90,7 +90,7 @@ export const MainLayout = () => {
   }
 
   const currentYear = new Date().getFullYear()
-  const accountLabel = user?.role === 'seller' ? 'บัญชีผู้ขายทดลอง' : 'บัญชีผู้ใช้ทดลอง'
+  const accountLabel = user?.role === 'seller' ? 'บัญชีผู้ขาย' : 'บัญชีผู้ใช้'
   const isProfileRoute = location.pathname === '/profile'
   const isSellerRoute = location.pathname.startsWith('/seller')
 

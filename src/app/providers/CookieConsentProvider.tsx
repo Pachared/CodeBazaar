@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { PropsWithChildren } from 'react'
 import { CookieConsentContext } from '@/app/providers/cookie-consent-context'
-import { hasRemoteApi } from '@/config/env'
-import { cookieService } from '@/services/api/cookie.service'
 import type { CookieConsentStatus, CookiePreferences, StoredCookieConsent } from '@/types/cookie'
 import {
   createAllCookiesConsent,
@@ -26,45 +24,8 @@ const resolveConsentStatus = (preferences: CookiePreferences): CookieConsentStat
 export const CookieConsentProvider = ({ children }: PropsWithChildren) => {
   const [consent, setConsent] = useState<StoredCookieConsent | null>(() => readStoredCookieConsent())
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [hasLoaded, setHasLoaded] = useState(!hasRemoteApi)
+  const [hasLoaded] = useState(true)
   const isBannerVisible = !consent && !isSettingsOpen
-
-  useEffect(() => {
-    if (!hasRemoteApi) {
-      return
-    }
-
-    const controller = new AbortController()
-
-    void cookieService
-      .getConsent(controller.signal)
-      .then((remoteConsent) => {
-        const currentLocalConsent = readStoredCookieConsent()
-
-        if (controller.signal.aborted) {
-          return
-        }
-
-        if (remoteConsent) {
-          setConsent(saveStoredCookieConsent(remoteConsent.status, remoteConsent.preferences))
-          setHasLoaded(true)
-          return
-        }
-
-        if (currentLocalConsent) {
-          void cookieService.saveConsent(currentLocalConsent.status, currentLocalConsent.preferences)
-        }
-
-        setHasLoaded(true)
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) {
-          setHasLoaded(true)
-        }
-      })
-
-    return () => controller.abort()
-  }, [])
 
   const persistConsent = (status: CookieConsentStatus, preferences: CookiePreferences) => {
     const nextConsent = saveStoredCookieConsent(status, {
@@ -74,10 +35,6 @@ export const CookieConsentProvider = ({ children }: PropsWithChildren) => {
 
     setConsent(nextConsent)
     setIsSettingsOpen(false)
-
-    if (hasRemoteApi) {
-      void cookieService.saveConsent(nextConsent.status, nextConsent.preferences)
-    }
 
     return nextConsent
   }

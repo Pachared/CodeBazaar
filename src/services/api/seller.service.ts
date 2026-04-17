@@ -1,5 +1,4 @@
-import { hasRemoteApi } from '@/config/env'
-import { mockSellerOrders } from '@/data/mockSellerOrders'
+import { requireRemoteApi } from '@/config/env'
 import type { AuthActionResponse } from '@/types/auth'
 import type {
   SellerListingInput,
@@ -7,8 +6,6 @@ import type {
   SellerListingResponse,
   SellerOrder,
 } from '@/types/seller'
-import { createMockAuthResponse, createMockSellerSession } from '@/utils/mockAuth'
-import { mockDelay } from './mockDelay'
 import { apiClient } from './client'
 
 interface SellerListingApiPayload {
@@ -38,16 +35,13 @@ interface SellerListingApiPayload {
 
 export const sellerService = {
   async openSellerAccount(): Promise<AuthActionResponse> {
-    if (!hasRemoteApi) {
-      await mockDelay(320)
-
-      return createMockAuthResponse(createMockSellerSession(), {
-        title: 'เปิดบัญชีผู้ขายสำเร็จ',
-        description: 'เชื่อมบัญชีผู้ขายทดลองด้วย GitHub เรียบร้อยแล้ว',
-      })
-    }
+    requireRemoteApi('บัญชีผู้ขาย ')
 
     const { data } = await apiClient.post<AuthActionResponse>('/seller/onboarding/github')
+
+    if (data.session?.isMock) {
+      throw new Error('backend ฝั่งผู้ขายยังไม่เปิดใช้งานแบบจริง จึงยังไม่สามารถเปิดบัญชีผู้ขายได้ในตอนนี้')
+    }
 
     if (!data.session) {
       return data
@@ -67,19 +61,7 @@ export const sellerService = {
     input: SellerListingInput,
     mode: SellerListingMode,
   ): Promise<SellerListingResponse> {
-    if (!hasRemoteApi) {
-      await mockDelay(360)
-
-      return {
-        title: mode === 'publish' ? 'ส่งขึ้นรายการขายแล้ว' : 'บันทึกร่างรายการแล้ว',
-        description:
-          mode === 'publish'
-            ? `${input.title} ถูกส่งขึ้นพื้นที่ขายเรียบร้อยแล้ว และพร้อมต่อระบบอนุมัติรายการจริง`
-            : `${input.title} ถูกบันทึกเป็นฉบับร่างเรียบร้อยแล้ว สามารถกลับมาแก้ไขต่อได้ทุกเมื่อ`,
-        listingId: `mock-${mode}-${Date.now()}`,
-        status: mode,
-      }
-    }
+    requireRemoteApi('การลงขายสินค้า ')
 
     const payload: SellerListingApiPayload = {
       assetType: input.assetType,
@@ -112,10 +94,7 @@ export const sellerService = {
   },
 
   async getSellerOrders(signal?: AbortSignal): Promise<SellerOrder[]> {
-    if (!hasRemoteApi) {
-      await mockDelay(300, signal)
-      return mockSellerOrders
-    }
+    requireRemoteApi('คำสั่งซื้อของร้าน ')
 
     const { data } = await apiClient.get<SellerOrder[]>('/seller/orders', { signal })
     return data

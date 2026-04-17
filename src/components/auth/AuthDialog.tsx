@@ -14,7 +14,6 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/providers/useAuth'
 import { useNotification } from '@/app/providers/useNotification'
 import { CloseActionButton } from '@/components/common/CloseActionButton'
-import { env } from '@/config/env'
 import { authService } from '@/services/api/auth.service'
 import { sellerService } from '@/services/api/seller.service'
 import {
@@ -25,6 +24,7 @@ import {
   uiRadius,
 } from '@/theme/uiTokens'
 import type { AuthDialogMode } from '@/types/auth'
+import { getGoogleClientId, saveGoogleClientId } from '@/utils/googleClientId'
 
 interface AuthDialogProps {
   open: boolean
@@ -69,9 +69,11 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
   const { signIn } = useAuth()
   const { notify } = useNotification()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [googleClientId, setGoogleClientId] = useState(() => getGoogleClientId())
 
   useEffect(() => {
     setIsSubmitting(false)
+    setGoogleClientId(getGoogleClientId())
   }, [mode, open])
 
   if (!mode) {
@@ -81,7 +83,25 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
   const copy = dialogCopy[mode]
   const actionIcon = mode === 'seller-register' ? <GitHubIcon /> : <GoogleIcon />
   const requiresGoogleClientId = mode !== 'seller-register'
-  const isGoogleAuthReady = !requiresGoogleClientId || Boolean(env.googleClientId)
+  const isGoogleAuthReady = !requiresGoogleClientId || Boolean(googleClientId)
+
+  const handleSetGoogleClientId = () => {
+    const nextValue = window.prompt('วาง Google Client ID สำหรับโปรเจกต์นี้', googleClientId)
+
+    if (!nextValue) {
+      return
+    }
+
+    saveGoogleClientId(nextValue)
+    const resolvedValue = getGoogleClientId()
+    setGoogleClientId(resolvedValue)
+
+    notify({
+      severity: 'success',
+      title: 'บันทึก Google Client ID แล้ว',
+      message: 'ตอนนี้คุณสามารถกดเข้าสู่ระบบหรือสมัครสมาชิกด้วย Google ต่อได้ทันที',
+    })
+  }
 
   const handleContinue = async () => {
     setIsSubmitting(true)
@@ -222,15 +242,26 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
                 <Typography variant="h4">{copy.title}</Typography>
                 <Typography color="text.secondary">{copy.helperText}</Typography>
                 {!isGoogleAuthReady ? (
-                  <Typography color="text.secondary" sx={{ fontSize: '0.95rem' }}>
-                    เพิ่มค่า
-                    {' '}
-                    <Box component="span" sx={{ fontWeight: 700 }}>
-                      VITE_GOOGLE_CLIENT_ID
-                    </Box>
-                    {' '}
-                    ในไฟล์ .env.local ก่อน จึงจะใช้งาน Google Sign-In แบบจริงได้
-                  </Typography>
+                  <Stack spacing={1.1} sx={{ alignItems: 'center' }}>
+                    <Typography color="text.secondary" sx={{ fontSize: '0.95rem' }}>
+                      ตอนนี้ runtime ของโปรเจกต์นี้ยังไม่พบค่า
+                      {' '}
+                      <Box component="span" sx={{ fontWeight: 700 }}>
+                        VITE_GOOGLE_CLIENT_ID
+                      </Box>
+                      {' '}
+                      คุณสามารถเพิ่มใน
+                      {' '}
+                      <Box component="span" sx={{ fontWeight: 700 }}>
+                        .env.local
+                      </Box>
+                      {' '}
+                      แล้วรีสตาร์ต dev server หรือกดตั้งค่าที่นี่ชั่วคราวได้เลย
+                    </Typography>
+                    <Button variant="outlined" onClick={handleSetGoogleClientId}>
+                      ตั้งค่า Google Client ID
+                    </Button>
+                  </Stack>
                 ) : null}
               </Stack>
 

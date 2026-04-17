@@ -4,7 +4,7 @@ export const createDefaultProfileFields = (role: AuthUserRole): AuthProfileField
   if (role === 'seller') {
     return {
       phoneNumber: '',
-      storeName: 'ร้านผู้ขายทดลอง',
+      storeName: '',
       savedCardHolderName: '',
       savedCardNumber: '',
       savedCardExpiry: '',

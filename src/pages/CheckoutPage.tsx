@@ -99,13 +99,13 @@ const paymentMethodOptions: PaymentMethodOption[] = [
   {
     value: 'card',
     label: 'บัตรเครดิต / เดบิต',
-    description: 'ใช้สำหรับ flow checkout มาตรฐานเมื่อเชื่อม payment gateway จริง',
+    description: 'ใช้ข้อมูลบัตรที่บันทึกไว้เพื่อยืนยันคำสั่งซื้อและซิงก์กลับไปยังโปรไฟล์',
     icon: <CreditCardRoundedIcon />,
   },
   {
     value: 'bank-transfer',
     label: 'โอนผ่านบัญชีธนาคาร',
-    description: 'รองรับกรณีทีมงานต้องตรวจสอบสลิปหรือออกเอกสารเพิ่มเติม',
+    description: 'ใช้ยืนยันการโอนด้วยเลขอ้างอิงและสลิปสำหรับคำสั่งซื้อรายการนี้',
     icon: <AccountBalanceRoundedIcon />,
   },
 ]
@@ -118,14 +118,14 @@ const paymentMethodLabelMap: Record<CheckoutPaymentMethod, string> = paymentMeth
   {} as Record<CheckoutPaymentMethod, string>,
 )
 
-const mockPromptPayAccount = {
-  accountName: 'CodeBazaar ทดลอง',
+const promptPayAccount = {
+  accountName: 'CodeBazaar',
   promptPayId: '081-234-5678',
 } as const
 
-const mockBankTransferAccount = {
+const bankTransferAccount = {
   bankName: 'ธนาคารกสิกรไทย',
-  accountName: 'CodeBazaar ทดลอง',
+  accountName: 'CodeBazaar',
   accountNumber: '123-4-56789-0',
 } as const
 
@@ -546,8 +546,8 @@ export const CheckoutPage = () => {
         form.paymentMethod === 'promptpay'
           ? {
               promptpay: {
-                accountName: mockPromptPayAccount.accountName,
-                promptPayId: mockPromptPayAccount.promptPayId,
+                accountName: promptPayAccount.accountName,
+                promptPayId: promptPayAccount.promptPayId,
                 referenceCode: promptPayReference,
               },
             }
@@ -561,9 +561,9 @@ export const CheckoutPage = () => {
               }
             : {
                 bankTransfer: {
-                  bankName: mockBankTransferAccount.bankName,
-                  accountName: mockBankTransferAccount.accountName,
-                  accountNumber: mockBankTransferAccount.accountNumber,
+                  bankName: bankTransferAccount.bankName,
+                  accountName: bankTransferAccount.accountName,
+                  accountNumber: bankTransferAccount.accountNumber,
                   transferReference: form.bankTransferReference.trim(),
                   slipImageName: form.bankTransferSlipName,
                 },
@@ -988,13 +988,13 @@ export const CheckoutPage = () => {
                             <Grid size={{ xs: 12, sm: 6 }}>
                               <PaymentDetailInfoCard
                                 label="ชื่อบัญชี"
-                                value={mockPromptPayAccount.accountName}
+                                value={promptPayAccount.accountName}
                               />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
                               <PaymentDetailInfoCard
                                 label="PromptPay ID"
-                                value={mockPromptPayAccount.promptPayId}
+                                value={promptPayAccount.promptPayId}
                               />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
@@ -1013,8 +1013,7 @@ export const CheckoutPage = () => {
                         </Stack>
 
                         <Typography color="text.secondary">
-                          ระบบทดลองจะแสดง QR พร้อมเพย์แบบตัวอย่างไว้ก่อน และเมื่อเชื่อม payment gateway
-                          จริงจะสร้าง QR ตามยอดคำสั่งซื้อให้อัตโนมัติ
+                          ใช้ข้อมูลพร้อมเพย์ของแพลตฟอร์มนี้ร่วมกับยอดคำสั่งซื้อปัจจุบันเพื่อยืนยันการชำระเงิน
                         </Typography>
                       </Stack>
                     ) : null}
@@ -1126,8 +1125,7 @@ export const CheckoutPage = () => {
                         </Grid>
 
                         <Typography color="text.secondary">
-                          สำหรับระบบทดลองนี้จะใช้ฟอร์มบัตรแบบจำลองก่อน และเมื่อเชื่อม payment gateway
-                          จริงจะเปลี่ยนไปใช้ tokenized card flow แทน
+                          ข้อมูลบัตรชุดนี้จะใช้กับคำสั่งซื้อปัจจุบัน และบันทึกกลับไปยังหน้าโปรไฟล์โดยไม่เก็บ CVC
                         </Typography>
                       </Stack>
                     ) : null}
@@ -1138,19 +1136,19 @@ export const CheckoutPage = () => {
                           <Grid size={{ xs: 12, sm: 6 }}>
                             <PaymentDetailInfoCard
                               label="ธนาคารรับโอน"
-                              value={mockBankTransferAccount.bankName}
+                              value={bankTransferAccount.bankName}
                             />
                           </Grid>
                           <Grid size={{ xs: 12, sm: 6 }}>
                             <PaymentDetailInfoCard
                               label="ชื่อบัญชี"
-                              value={mockBankTransferAccount.accountName}
+                              value={bankTransferAccount.accountName}
                             />
                           </Grid>
                           <Grid size={{ xs: 12 }}>
                             <PaymentDetailInfoCard
                               label="เลขบัญชีธนาคาร"
-                              value={mockBankTransferAccount.accountNumber}
+                              value={bankTransferAccount.accountNumber}
                             />
                           </Grid>
                         </Grid>

@@ -1,25 +1,10 @@
-import { env } from '@/config/env'
-import type { AuthActionResponse, AuthSessionUser, BuyerAuthIntent } from '@/types/auth'
-import { createDefaultProfileFields } from '@/utils/authProfileDefaults'
+import type { BuyerAuthIntent } from '@/types/auth'
+import { getGoogleClientId } from '@/utils/googleClientId'
 
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client'
 const GOOGLE_AUTH_SCOPE = 'openid email profile'
-const GOOGLE_USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 let googleScriptPromise: Promise<void> | null = null
-
-interface GoogleUserInfoResponse {
-  sub: string
-  name?: string
-  email?: string
-  email_verified?: boolean | string
-}
-
-interface GoogleVerifiedUserInfo {
-  sub: string
-  name?: string
-  email: string
-}
 
 const createGoogleAuthErrorMessage = (type?: string) => {
   switch (type) {
@@ -73,7 +58,9 @@ const loadGoogleScript = () => {
 }
 
 const requestGoogleAccessToken = async (intent: BuyerAuthIntent) => {
-  if (!env.googleClientId) {
+  const googleClientId = getGoogleClientId()
+
+  if (!googleClientId) {
     throw new Error('ยังไม่ได้ตั้งค่า VITE_GOOGLE_CLIENT_ID สำหรับ Google Sign-In จริง')
   }
 
@@ -87,7 +74,7 @@ const requestGoogleAccessToken = async (intent: BuyerAuthIntent) => {
     }
 
     const tokenClient = googleAccounts.oauth2.initTokenClient({
-      client_id: env.googleClientId,
+      client_id: googleClientId,
       scope: GOOGLE_AUTH_SCOPE,
       prompt: intent === 'register' ? 'consent select_account' : 'select_account',
       callback: (response) => {
@@ -112,75 +99,8 @@ const requestGoogleAccessToken = async (intent: BuyerAuthIntent) => {
   })
 }
 
-const fetchGoogleUserInfo = async (accessToken: string): Promise<GoogleVerifiedUserInfo> => {
-  const response = await fetch(GOOGLE_USERINFO_ENDPOINT, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error('ไม่สามารถดึงข้อมูลบัญชี Google ได้')
-  }
-
-  const userInfo = (await response.json()) as GoogleUserInfoResponse
-
-  if (!userInfo.sub || !userInfo.email) {
-    throw new Error('ข้อมูลบัญชี Google ที่ได้รับไม่ครบถ้วน')
-  }
-
-  if (!(userInfo.email_verified === true || userInfo.email_verified === 'true')) {
-    throw new Error('บัญชี Google นี้ยังไม่ได้ยืนยันอีเมล')
-  }
-
-  return {
-    sub: userInfo.sub,
-    name: userInfo.name,
-    email: userInfo.email,
-  }
-}
-
-const createBuyerSessionFromGoogle = (userInfo: GoogleVerifiedUserInfo): AuthSessionUser => ({
-  ...createDefaultProfileFields('buyer'),
-  id: `google-${userInfo.sub}`,
-  name: userInfo.name?.trim() || 'ผู้ใช้ Google',
-  email: userInfo.email.trim().toLowerCase(),
-  role: 'buyer',
-  provider: 'google',
-  isMock: false,
-})
-
-const buildLocalGoogleAuthResponse = async (
-  accessToken: string,
-  intent: BuyerAuthIntent,
-): Promise<AuthActionResponse> => {
-  const userInfo = await fetchGoogleUserInfo(accessToken)
-  const session = createBuyerSessionFromGoogle(userInfo)
-
-  return {
-    title: intent === 'login' ? 'เข้าสู่ระบบสำเร็จ' : 'สมัครสมาชิกสำเร็จ',
-    description:
-      intent === 'login'
-        ? 'บัญชี Google ของคุณถูกเชื่อมเข้ากับ CodeBazaar เรียบร้อยแล้ว'
-        : 'สร้างบัญชีผู้ใช้จาก Google เรียบร้อยแล้ว สามารถใช้งานต่อได้ทันที',
-    session,
-  }
-}
-
 export const googleIdentityService = {
   async requestBuyerAccessToken(intent: BuyerAuthIntent): Promise<string> {
     return requestGoogleAccessToken(intent)
-  },
-
-  async authenticateBuyerLocallyWithAccessToken(
-    accessToken: string,
-    intent: BuyerAuthIntent,
-  ): Promise<AuthActionResponse> {
-    return buildLocalGoogleAuthResponse(accessToken, intent)
-  },
-
-  async authenticateBuyerLocally(intent: BuyerAuthIntent): Promise<AuthActionResponse> {
-    const accessToken = await this.requestBuyerAccessToken(intent)
-    return buildLocalGoogleAuthResponse(accessToken, intent)
   },
 }

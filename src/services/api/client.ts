@@ -11,19 +11,45 @@ export const apiClient = axios.create({
   },
 })
 
-apiClient.interceptors.request.use((config) => {
-  const session = readStoredAuthSession()
-  const sessionKey = getClientSessionKey()
-  const headers = AxiosHeaders.from(config.headers)
+const normalizeRequestPath = (rawPath: string) => rawPath.replace(/^\/api\/v1/, '')
 
-  headers.set('X-Session-Key', sessionKey)
-
-  if (session?.id) {
-    headers.set('X-User-ID', session.id)
+const resolveRequestPath = (url?: string, baseURL?: string) => {
+  if (!url) {
+    return ''
   }
 
-  if (session?.email) {
-    headers.set('X-User-Email', session.email)
+  try {
+    const resolvedUrl = new URL(url, baseURL || env.apiBaseUrl || window.location.origin)
+    return normalizeRequestPath(resolvedUrl.pathname)
+  } catch {
+    return normalizeRequestPath(url)
+  }
+}
+
+const shouldAttachCurrentUserHeaders = (path: string) =>
+  path.startsWith('/me/') || path === '/checkout/orders' || path.startsWith('/seller/')
+
+apiClient.interceptors.request.use((config) => {
+  const session = readStoredAuthSession()
+  const headers = AxiosHeaders.from(config.headers)
+  const requestPath = resolveRequestPath(config.url, config.baseURL)
+
+  headers.delete('X-Session-Key')
+  headers.delete('X-User-ID')
+  headers.delete('X-User-Email')
+
+  if (requestPath === '/cookie-consent' || requestPath === '/me/cookie-consent') {
+    headers.set('X-Session-Key', getClientSessionKey())
+  }
+
+  if (shouldAttachCurrentUserHeaders(requestPath)) {
+    if (session?.id) {
+      headers.set('X-User-ID', session.id)
+    }
+
+    if (session?.email) {
+      headers.set('X-User-Email', session.email)
+    }
   }
 
   config.headers = headers

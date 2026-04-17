@@ -12,7 +12,10 @@ import {
 } from '@/utils/authSession'
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
-  const [user, setUser] = useState<AuthSessionUser | null>(() => readStoredAuthSession())
+  const [user, setUser] = useState<AuthSessionUser | null>(() => {
+    const storedSession = readStoredAuthSession()
+    return storedSession?.isMock ? null : storedSession
+  })
 
   const commitSession = useCallback((session: AuthSessionUser | null) => {
     setUser(session)
@@ -28,7 +31,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const signIn = (session: AuthSessionUser) => {
     const normalizedSession = normalizeAuthSession(session)
 
-    if (!normalizedSession) {
+    if (!normalizedSession || normalizedSession.isMock) {
       return
     }
 
@@ -66,20 +69,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const updateProfile = async (profile: AuthProfileUpdate) => {
     if (!user) {
       return null
-    }
-
-    if (!hasRemoteApi) {
-      const nextUser = normalizeAuthSession({
-        ...user,
-        ...profile,
-      })
-
-      if (!nextUser) {
-        return null
-      }
-
-      commitSession(nextUser)
-      return nextUser
     }
 
     const nextUser = await profileService.updateProfile(profile)

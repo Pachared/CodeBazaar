@@ -1,4 +1,4 @@
-import { hasRemoteApi } from '@/config/env'
+import { requireRemoteApi } from '@/config/env'
 import type { DownloadLibraryItem } from '@/types/downloads'
 import { apiClient } from './client'
 
@@ -9,18 +9,14 @@ interface MessageResponse {
 
 export const downloadsService = {
   async getDownloads(signal?: AbortSignal): Promise<DownloadLibraryItem[]> {
-    if (!hasRemoteApi) {
-      return []
-    }
+    requireRemoteApi('คลังดาวน์โหลด ')
 
     const { data } = await apiClient.get<DownloadLibraryItem[]>('/me/downloads', { signal })
     return data
   },
 
   async markDownloaded(libraryItemId: string): Promise<MessageResponse | null> {
-    if (!hasRemoteApi) {
-      return null
-    }
+    requireRemoteApi('คลังดาวน์โหลด ')
 
     const { data } = await apiClient.post<MessageResponse>(
       `/me/downloads/${libraryItemId}/download`,
