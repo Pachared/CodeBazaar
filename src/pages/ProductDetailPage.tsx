@@ -23,13 +23,22 @@ import { CartIcon } from '@/components/cart/CartIcon'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import { ProjectPreview } from '@/components/marketplace/ProjectPreview'
 import { useProductDetail } from '@/hooks/useProductDetail'
-import { glassSurfaceMutedSx, metricSurfaceSx, uiRadius } from '@/theme/uiTokens'
+import {
+  accentGradientDark,
+  accentPalette,
+  glassSurfaceMutedSx,
+  metricSurfaceSx,
+  softAccentBackground,
+  uiRadius,
+} from '@/theme/uiTokens'
 import { formatCurrency } from '@/utils/formatCurrency'
 
-const DetailMetaRow = ({ label, value }: { label: string; value: string }) => (
+const DetailMetaRow = ({ label, value }: { label: string; value: ReactNode }) => (
   <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
     <Typography color="text.secondary">{label}</Typography>
-    <Typography sx={{ fontWeight: 700, textAlign: 'right' }}>{value}</Typography>
+    <Typography component="div" sx={{ fontWeight: 700, textAlign: 'right' }}>
+      {value}
+    </Typography>
   </Stack>
 )
 
@@ -124,10 +133,10 @@ const ErrorState = ({ message }: { message: string }) => (
         <Button
           variant="contained"
           component={RouterLink}
-          to="/"
+          to="/catalog"
           startIcon={<ArrowBackRoundedIcon />}
         >
-          กลับไปดูรายการทั้งหมด
+          กลับไปดูซอร์สโค้ดและเทมเพลตทั้งหมด
         </Button>
       </Stack>
     </Paper>
@@ -162,8 +171,7 @@ export const ProductDetailPage = () => {
         sx={{
           p: { xs: 3, md: 4.5 },
           borderRadius: uiRadius.xl,
-          background:
-            'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
+          background: softAccentBackground,
         }}
       >
         <Stack spacing={2.25}>
@@ -194,7 +202,11 @@ export const ProductDetailPage = () => {
                     <Chip
                       icon={<VerifiedRoundedIcon />}
                       label="ผู้ขายยืนยันแล้ว"
-                      sx={{ backgroundColor: '#111111', color: 'common.white' }}
+                      sx={{
+                        background: accentGradientDark,
+                        color: 'common.white',
+                        border: `1px solid ${accentPalette.border}`,
+                      }}
                     />
                   ) : null}
                   <SectionBadge label={product.category} />
@@ -232,7 +244,7 @@ export const ProductDetailPage = () => {
                   <Grid key={feature} size={{ xs: 12, md: 4 }}>
                     <Paper sx={{ ...metricSurfaceSx, height: '100%' }}>
                       <Stack spacing={1}>
-                        <CheckCircleRoundedIcon sx={{ color: '#111111' }} />
+                        <CheckCircleRoundedIcon sx={{ color: accentPalette.text }} />
                         <Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>
                           {feature}
                         </Typography>
@@ -277,7 +289,22 @@ export const ProductDetailPage = () => {
                 </Typography>
                 <Divider />
                 <Typography color="text.secondary">
-                  โดย {product.authorName} • {product.updatedAt}
+                  โดย{' '}
+                  <Box
+                    component={RouterLink}
+                    to={`/sellers/${product.authorSlug}`}
+                    sx={{
+                      color: 'inherit',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      '&:hover': {
+                        textDecoration: 'underline',
+                      },
+                    }}
+                  >
+                    {product.authorName}
+                  </Box>
+                  {' '}• {product.updatedAt}
                 </Typography>
               </Stack>
             </DetailSection>
@@ -305,7 +332,24 @@ export const ProductDetailPage = () => {
 
                 <Stack spacing={1.1}>
                   <DetailMetaRow label="หมวดหมู่" value={product.category} />
-                  <DetailMetaRow label="ผู้ขาย" value={product.authorName} />
+                  <DetailMetaRow
+                    label="ผู้ขาย"
+                    value={
+                      <Box
+                        component={RouterLink}
+                        to={`/sellers/${product.authorSlug}`}
+                        sx={{
+                          color: 'inherit',
+                          textDecoration: 'none',
+                          '&:hover': {
+                            textDecoration: 'underline',
+                          },
+                        }}
+                      >
+                        {product.authorName}
+                      </Box>
+                    }
+                  />
                   <DetailMetaRow label="คะแนนรีวิว" value={product.rating.toFixed(1)} />
                   <DetailMetaRow label="ยอดขาย" value={`${product.sales} รายการ`} />
                   <DetailMetaRow label="การจัดส่ง" value={product.delivery} />
@@ -318,10 +362,10 @@ export const ProductDetailPage = () => {
                   <Button
                     variant="outlined"
                     component={RouterLink}
-                    to="/"
+                    to="/catalog"
                     startIcon={<ArrowBackRoundedIcon />}
                   >
-                    กลับไปดูรายการทั้งหมด
+                    กลับไปดูซอร์สโค้ดและเทมเพลตทั้งหมด
                   </Button>
                   <Button
                     variant="outlined"

@@ -17,6 +17,11 @@ interface ProjectsGridProps {
   products: Product[]
   isLoading: boolean
   error: string | null
+  title?: string
+  description?: string
+  emptyTitle?: string
+  emptyDescription?: string
+  showIntro?: boolean
 }
 
 const LoadingCard = () => {
@@ -37,6 +42,11 @@ export const ProjectsGrid = ({
   products,
   isLoading,
   error,
+  title = 'รายการขายที่พร้อมดูรายละเอียดและกดซื้อได้ทันที',
+  description = 'แต่ละการ์ดมีทั้งปุ่มดูรายละเอียด ใส่ตะกร้า และซื้อทันที พร้อมสรุปข้อมูลสำคัญอย่างราคา ไลเซนส์ ผู้ขาย และคะแนนรีวิวให้เห็นในบล็อกเดียว',
+  emptyTitle = 'ยังไม่พบโปรเจกต์ที่ตรงกับเงื่อนไขนี้',
+  emptyDescription = 'ลองเปลี่ยนคำค้นหา หมวดหมู่ หรือรีเซ็ตตัวกรองทางซ้ายเพื่อดูรายการทั้งหมด',
+  showIntro = true,
 }: ProjectsGridProps) => {
   const { notify } = useNotification()
 
@@ -56,19 +66,18 @@ export const ProjectsGrid = ({
   return (
     <Box component="section" id="projects">
       <Stack spacing={2.5}>
-        <Paper sx={{ p: 3, borderRadius: uiRadius.lg }}>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12 }}>
-              <Stack spacing={1.25}>
-                <Typography variant="h3">รายการขายที่พร้อมดูรายละเอียดและกดซื้อได้ทันที</Typography>
-                <Typography color="text.secondary">
-                  แต่ละการ์ดมีทั้งปุ่มดูรายละเอียด ใส่ตะกร้า และซื้อทันที พร้อมสรุปข้อมูลสำคัญอย่างราคา
-                  ไลเซนส์ ผู้ขาย และคะแนนรีวิวให้เห็นในบล็อกเดียว
-                </Typography>
-              </Stack>
+        {showIntro ? (
+          <Paper sx={{ p: 3, borderRadius: uiRadius.lg }}>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12 }}>
+                <Stack spacing={1.25}>
+                  <Typography variant="h3">{title}</Typography>
+                  <Typography color="text.secondary">{description}</Typography>
+                </Stack>
+              </Grid>
             </Grid>
-          </Grid>
-        </Paper>
+          </Paper>
+        ) : null}
 
         {isLoading ? (
           <Grid container spacing={3}>
@@ -82,10 +91,8 @@ export const ProjectsGrid = ({
           <Paper sx={{ p: 4, borderRadius: uiRadius.lg }}>
             <Stack spacing={1.5} sx={{ alignItems: 'center', textAlign: 'center' }}>
               <Inventory2OutlinedIcon sx={{ fontSize: 42, color: 'text.secondary' }} />
-              <Typography variant="h5">ยังไม่พบโปรเจกต์ที่ตรงกับเงื่อนไขนี้</Typography>
-              <Typography color="text.secondary">
-                ลองเปลี่ยนคำค้นหา หมวดหมู่ หรือรีเซ็ตตัวกรองทางซ้ายเพื่อดูรายการทั้งหมด
-              </Typography>
+              <Typography variant="h5">{emptyTitle}</Typography>
+              <Typography color="text.secondary">{emptyDescription}</Typography>
             </Stack>
           </Paper>
         ) : (

@@ -15,7 +15,13 @@ import { useNotification } from '@/app/providers/useNotification'
 import { CloseActionButton } from '@/components/common/CloseActionButton'
 import { authService } from '@/services/api/auth.service'
 import { sellerService } from '@/services/api/seller.service'
-import { uiRadius } from '@/theme/uiTokens'
+import {
+  accentGradientDark,
+  accentPalette,
+  softAccentBackground,
+  softAccentBackgroundMuted,
+  uiRadius,
+} from '@/theme/uiTokens'
 import type { AuthDialogMode } from '@/types/auth'
 
 interface AuthDialogProps {
@@ -128,16 +134,15 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
             position: 'relative',
             borderRadius: uiRadius.xl,
             overflow: 'hidden',
-            border: '1px solid rgba(255, 255, 255, 0.82)',
-            background:
-              'linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(244, 244, 247, 0.84) 100%)',
+            border: `1px solid ${accentPalette.border}`,
+            background: softAccentBackground,
             boxShadow: '0 28px 70px rgba(15, 15, 16, 0.14)',
             '&::before': {
               content: '""',
               position: 'absolute',
               inset: 0,
               background:
-                'radial-gradient(circle at top left, rgba(255,255,255,0.88), transparent 34%), radial-gradient(circle at bottom right, rgba(17,17,17,0.04), transparent 32%)',
+                'radial-gradient(circle at top left, rgba(255,255,255,0.88), transparent 34%), radial-gradient(circle at bottom right, rgba(111,124,255,0.12), transparent 32%)',
               pointerEvents: 'none',
             },
           },
@@ -174,7 +179,7 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
                   display: 'grid',
                   placeItems: 'center',
                   borderRadius: uiRadius.lg,
-                  background: 'linear-gradient(180deg, #111111 0%, #34343a 100%)',
+                  background: accentGradientDark,
                   color: 'common.white',
                   boxShadow: '0 18px 48px rgba(17, 17, 17, 0.18)',
                   flexShrink: 0,
@@ -201,9 +206,8 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
             sx={{
               p: { xs: 2, sm: 2.4 },
               borderRadius: uiRadius.xl,
-              border: '1px solid rgba(255, 255, 255, 0.82)',
-              background:
-                'linear-gradient(180deg, rgba(255, 255, 255, 0.74) 0%, rgba(250, 250, 252, 0.62) 100%)',
+              border: `1px solid ${accentPalette.border}`,
+              background: softAccentBackgroundMuted,
               backdropFilter: 'blur(18px)',
               boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.86)',
             }}

@@ -5,6 +5,9 @@ export const createDefaultProfileFields = (role: AuthUserRole): AuthProfileField
     return {
       phoneNumber: '',
       storeName: 'ร้านผู้ขายทดลอง',
+      savedCardHolderName: '',
+      savedCardNumber: '',
+      savedCardExpiry: '',
       bankName: '',
       bankAccountNumber: '',
       bankBookImageName: '',
@@ -19,6 +22,9 @@ export const createDefaultProfileFields = (role: AuthUserRole): AuthProfileField
   return {
     phoneNumber: '',
     storeName: '',
+    savedCardHolderName: '',
+    savedCardNumber: '',
+    savedCardExpiry: '',
     bankName: '',
     bankAccountNumber: '',
     bankBookImageName: '',

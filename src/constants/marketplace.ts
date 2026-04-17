@@ -1,6 +1,5 @@
 import type {
   FilterOption,
-  ProjectInsight,
   SellerCatalogType,
   SellerFeature,
   SellerStat,
@@ -38,24 +37,6 @@ export const sortOptions: FilterOption[] = [
 ]
 
 export const stackOptions = ['React', 'TypeScript', 'MUI', 'API Ready', 'Responsive', 'Seller']
-
-export const heroInsights: ProjectInsight[] = [
-  {
-    label: 'โปรเจกต์พร้อมขาย',
-    value: '120+',
-    description: 'รวมซอร์สโค้ด เทมเพลต และชุดเริ่มต้นที่จัดวางอย่างเป็นระเบียบ',
-  },
-  {
-    label: 'หมวดหมู่หลัก',
-    value: '5 หมวด',
-    description: 'แยกเป็นมาร์เก็ตเพลส แดชบอร์ด หน้าเปิดตัว ระบบดีไซน์ และ SaaS เริ่มต้น',
-  },
-  {
-    label: 'ไฟล์พร้อมใช้งาน',
-    value: 'จัดครบ',
-    description: 'แต่ละรายการมีแพ็กเกจดาวน์โหลด รายละเอียดไลเซนส์ และข้อมูลสำคัญให้ดูก่อนตัดสินใจซื้อ',
-  },
-]
 
 export const sellerFeatures: SellerFeature[] = [
   {

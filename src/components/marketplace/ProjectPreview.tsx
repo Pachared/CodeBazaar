@@ -1,6 +1,6 @@
 import { Box, Chip, Stack } from '@mui/material'
 import { alpha } from '@mui/material/styles'
-import { uiRadius } from '@/theme/uiTokens'
+import { accentPalette, uiRadius } from '@/theme/uiTokens'
 import type { Product } from '@/types/marketplace'
 
 interface ProjectPreviewProps {
@@ -9,31 +9,31 @@ interface ProjectPreviewProps {
 
 const previewPaletteByCategory = {
   marketplace: {
-    background: 'linear-gradient(135deg, #0f0f11 0%, #3b3b41 45%, #ececef 100%)',
+    background: 'linear-gradient(135deg, #12141c 0%, #3850b6 42%, #b480ff 100%)',
     surface: 'rgba(255, 255, 255, 0.88)',
     surfaceMuted: 'rgba(255, 255, 255, 0.42)',
     accent: 'rgba(17, 17, 17, 0.92)',
   },
   dashboard: {
-    background: 'linear-gradient(135deg, #121214 0%, #2b2d31 45%, #d7d8dc 100%)',
+    background: 'linear-gradient(135deg, #14161f 0%, #2a3f81 42%, #83b0ff 100%)',
     surface: 'rgba(255, 255, 255, 0.9)',
     surfaceMuted: 'rgba(255, 255, 255, 0.36)',
     accent: 'rgba(255, 255, 255, 0.22)',
   },
   'landing-page': {
-    background: 'linear-gradient(135deg, #f5f5f7 0%, #d7d7db 45%, #101011 100%)',
+    background: 'linear-gradient(135deg, #f8f8fe 0%, #d7ddff 45%, #847cff 100%)',
     surface: 'rgba(255, 255, 255, 0.86)',
     surfaceMuted: 'rgba(17, 17, 17, 0.12)',
     accent: 'rgba(255, 255, 255, 0.28)',
   },
   saas: {
-    background: 'linear-gradient(135deg, #111214 0%, #4a4b50 40%, #ededf0 100%)',
+    background: 'linear-gradient(135deg, #12141c 0%, #3146a3 42%, #97c8ff 100%)',
     surface: 'rgba(255, 255, 255, 0.9)',
     surfaceMuted: 'rgba(255, 255, 255, 0.3)',
     accent: 'rgba(255, 255, 255, 0.22)',
   },
   'design-system': {
-    background: 'linear-gradient(135deg, #0f0f10 0%, #2a2b2e 35%, #f0f0f2 100%)',
+    background: 'linear-gradient(135deg, #111218 0%, #4d4ec0 35%, #c98aff 100%)',
     surface: 'rgba(255, 255, 255, 0.88)',
     surfaceMuted: 'rgba(255, 255, 255, 0.32)',
     accent: 'rgba(17, 17, 17, 0.9)',
@@ -134,7 +134,7 @@ export const ProjectPreview = ({ product }: ProjectPreviewProps) => {
                       size="small"
                       sx={{
                         height: 22,
-                        backgroundColor: alpha('#111111', 0.06),
+                        backgroundColor: alpha(accentPalette.primary, 0.1),
                         '.MuiChip-label': { px: 1.1, fontWeight: 700 },
                       }}
                     />

@@ -10,14 +10,14 @@ import type { SlideProps } from '@mui/material'
 import { useCallback, useRef, useState } from 'react'
 import type { PropsWithChildren, SyntheticEvent } from 'react'
 import { NotificationContext } from '@/app/providers/notification-context'
-import { uiRadius } from '@/theme/uiTokens'
+import { accentPalette, softAccentBackground, uiRadius } from '@/theme/uiTokens'
 import type { NotificationInput, NotificationSeverity, QueuedNotification } from '@/types/notification'
 
 const SlideDownTransition = (props: SlideProps) => <Slide {...props} direction="down" />
 
 const severityBackgrounds: Record<NotificationSeverity, string> = {
-  success: 'linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 248, 244, 0.94) 100%)',
-  info: 'linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 245, 248, 0.94) 100%)',
+  success: 'linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(242, 250, 248, 0.94) 100%)',
+  info: softAccentBackground,
   warning: 'linear-gradient(180deg, rgba(255, 250, 244, 0.96) 0%, rgba(252, 246, 236, 0.94) 100%)',
   error: 'linear-gradient(180deg, rgba(255, 247, 247, 0.96) 0%, rgba(252, 240, 240, 0.94) 100%)',
 }
@@ -102,7 +102,7 @@ export const NotificationProvider = ({ children }: PropsWithChildren) => {
               minWidth: { xs: 'calc(100vw - 24px)', sm: 420 },
               maxWidth: 520,
               borderRadius: uiRadius.lg,
-              border: '1px solid rgba(255, 255, 255, 0.86)',
+              border: `1px solid ${accentPalette.border}`,
               background: severityBackgrounds[severity],
               backdropFilter: 'blur(20px)',
               boxShadow: '0 18px 46px rgba(15, 15, 16, 0.1)',

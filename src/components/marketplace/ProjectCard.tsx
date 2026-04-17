@@ -15,7 +15,12 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import { useMarketplace } from '@/app/providers/useMarketplace'
 import { CartIcon } from '@/components/cart/CartIcon'
-import { uiRadius } from '@/theme/uiTokens'
+import {
+  accentGradientDark,
+  accentPalette,
+  softAccentBackgroundMuted,
+  uiRadius,
+} from '@/theme/uiTokens'
 import type { Product } from '@/types/marketplace'
 import { formatCurrency } from '@/utils/formatCurrency'
 import { ProjectPreview } from './ProjectPreview'
@@ -34,7 +39,7 @@ export const ProjectCard = ({ product }: ProjectCardProps) => {
         height: '100%',
         overflow: 'hidden',
         border: 'none',
-        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        backgroundColor: 'rgba(255, 255, 255, 0.48)',
       }}
     >
       <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
@@ -46,7 +51,11 @@ export const ProjectCard = ({ product }: ProjectCardProps) => {
                   <Chip
                     icon={<VerifiedRoundedIcon />}
                     label="ผู้ขายยืนยันแล้ว"
-                    sx={{ backgroundColor: '#111111', color: 'common.white' }}
+                    sx={{
+                      background: accentGradientDark,
+                      color: 'common.white',
+                      border: `1px solid ${accentPalette.border}`,
+                    }}
                   />
                 </Stack>
               ) : null}
@@ -77,7 +86,8 @@ export const ProjectCard = ({ product }: ProjectCardProps) => {
                 borderRadius: uiRadius.lg,
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: 'rgba(255, 255, 255, 0.78)',
+                background: softAccentBackgroundMuted,
+                border: `1px solid ${accentPalette.border}`,
                 boxShadow: 'none',
               }}
             >
@@ -112,7 +122,20 @@ export const ProjectCard = ({ product }: ProjectCardProps) => {
                     <Typography variant="body2" color="text.secondary">
                       ผู้ขาย
                     </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    <Typography
+                      component={RouterLink}
+                      to={`/sellers/${product.authorSlug}`}
+                      variant="body2"
+                      sx={{
+                        fontWeight: 700,
+                        color: 'inherit',
+                        textDecoration: 'none',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                          color: accentPalette.text,
+                        },
+                      }}
+                    >
                       {product.authorName}
                     </Typography>
                   </Stack>
@@ -199,7 +222,23 @@ export const ProjectCard = ({ product }: ProjectCardProps) => {
 
           <Stack spacing={1.5}>
             <Typography variant="body2" color="text.secondary">
-              โดย {product.authorName} • {product.updatedAt}
+              โดย{' '}
+              <Box
+                component={RouterLink}
+                to={`/sellers/${product.authorSlug}`}
+                sx={{
+                  color: 'inherit',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  '&:hover': {
+                    textDecoration: 'underline',
+                    color: accentPalette.text,
+                  },
+                }}
+              >
+                {product.authorName}
+              </Box>
+              {' '}• {product.updatedAt}
             </Typography>
           </Stack>
         </Stack>

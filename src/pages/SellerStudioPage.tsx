@@ -308,6 +308,9 @@ export const SellerStudioPage = () => {
     versionLabel: form.version.trim() || '1.0.0',
     fileFormatLabel,
     authorName: user?.storeName?.trim() || user?.name || 'บัญชีผู้ขาย',
+    authorSlug: (user?.storeName?.trim() || user?.name || 'seller-studio')
+      .toLowerCase()
+      .replace(/\s+/g, '-'),
     updatedAt: 'ตัวอย่างก่อนส่งขาย',
     updatedDaysAgo: 0,
     delivery: deliveryLabel,

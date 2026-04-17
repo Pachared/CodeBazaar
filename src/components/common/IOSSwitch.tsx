@@ -1,6 +1,7 @@
 import { Switch } from '@mui/material'
 import type { SwitchProps } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import { accentPalette } from '@/theme/uiTokens'
 
 export const IOSSwitch = styled((props: SwitchProps) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
@@ -16,16 +17,17 @@ export const IOSSwitch = styled((props: SwitchProps) => (
       transform: 'translateX(16px)',
       color: '#fff',
       '& + .MuiSwitch-track': {
-        backgroundColor: theme.palette.mode === 'dark' ? '#2ECA45' : '#65C466',
+        backgroundColor: theme.palette.mode === 'dark' ? '#8e7cff' : accentPalette.primary,
         opacity: 1,
         border: 0,
+        boxShadow: `0 0 0 1px ${accentPalette.borderStrong}`,
       },
       '&.Mui-disabled + .MuiSwitch-track': {
         opacity: 0.5,
       },
     },
     '&.Mui-focusVisible .MuiSwitch-thumb': {
-      color: '#33cf4d',
+      color: accentPalette.secondary,
       border: '6px solid #fff',
     },
     '&.Mui-disabled .MuiSwitch-thumb': {
@@ -42,7 +44,7 @@ export const IOSSwitch = styled((props: SwitchProps) => (
   },
   '& .MuiSwitch-track': {
     borderRadius: 13,
-    backgroundColor: theme.palette.mode === 'dark' ? '#39393D' : '#E9E9EA',
+    backgroundColor: theme.palette.mode === 'dark' ? '#39393D' : 'rgba(111, 124, 255, 0.16)',
     opacity: 1,
     transition: theme.transitions.create(['background-color'], {
       duration: 500,

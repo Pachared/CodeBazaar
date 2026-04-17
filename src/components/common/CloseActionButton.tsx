@@ -1,7 +1,7 @@
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { IconButton } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material/styles'
-import { uiRadius } from '@/theme/uiTokens'
+import { accentPalette, uiRadius } from '@/theme/uiTokens'
 
 interface CloseActionButtonProps {
   ariaLabel: string
@@ -27,8 +27,8 @@ export const CloseActionButton = ({
           backgroundColor: 'transparent',
           transition: 'background-color 180ms ease, color 180ms ease, box-shadow 180ms ease',
           '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.72)',
-            color: 'text.primary',
+            backgroundColor: accentPalette.softStrong,
+            color: accentPalette.text,
             boxShadow: '0 6px 18px rgba(15, 15, 16, 0.05)',
           },
         },

@@ -7,6 +7,7 @@ import {
   Container,
   Grid,
   Paper,
+  Skeleton,
   Stack,
   Typography,
 } from '@mui/material'
@@ -16,7 +17,14 @@ import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import { useSellerOrders } from '@/hooks/useSellerOrders'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
-import { glassSurfaceMutedSx, metricSurfaceSx, uiRadius } from '@/theme/uiTokens'
+import {
+  accentGradientDark,
+  glassSurfaceMutedSx,
+  metricSurfaceSx,
+  softAccentBackground,
+  softAccentBackgroundMuted,
+  uiRadius,
+} from '@/theme/uiTokens'
 import type { SellerOrder } from '@/types/seller'
 import { formatCurrency } from '@/utils/formatCurrency'
 
@@ -69,7 +77,7 @@ const SellerOrderCard = ({ order }: { order: SellerOrder }) => (
               display: 'grid',
               placeItems: 'center',
               borderRadius: uiRadius.lg,
-              background: 'linear-gradient(180deg, #111111 0%, #37373c 100%)',
+              background: accentGradientDark,
               color: 'common.white',
               boxShadow: '0 18px 34px rgba(17, 17, 17, 0.16)',
             }}
@@ -128,6 +136,91 @@ const SellerOrderCard = ({ order }: { order: SellerOrder }) => (
   </Paper>
 )
 
+const SellerOrderSummarySkeleton = () => (
+  <Paper
+    sx={{
+      p: 3,
+      borderRadius: uiRadius.xl,
+      background: softAccentBackground,
+    }}
+  >
+    <Stack spacing={2.5}>
+      <Skeleton variant="rounded" width={78} height={78} sx={{ borderRadius: uiRadius.md }} />
+
+      <Stack spacing={0.8}>
+        <Skeleton variant="text" width="58%" height={42} />
+        <Skeleton variant="text" width="74%" height={22} />
+      </Stack>
+
+      <DividerLight />
+
+      <Stack spacing={1.2}>
+        {Array.from({ length: 4 }, (_, index) => (
+          <Stack
+            key={`seller-order-summary-skeleton-${index}`}
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <Skeleton variant="text" width="42%" height={22} />
+            <Skeleton variant="text" width="28%" height={22} />
+          </Stack>
+        ))}
+      </Stack>
+
+      <Stack spacing={1.25}>
+        <Skeleton variant="rounded" height={46} sx={{ borderRadius: uiRadius.md }} />
+        <Skeleton variant="rounded" height={46} sx={{ borderRadius: uiRadius.md }} />
+      </Stack>
+    </Stack>
+  </Paper>
+)
+
+const SellerOrderCardSkeleton = () => (
+  <Paper
+    sx={{
+      ...glassSurfaceMutedSx,
+      p: { xs: 2.5, md: 3 },
+      borderRadius: uiRadius.xl,
+    }}
+  >
+    <Stack spacing={2.25}>
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        sx={{ justifyContent: 'space-between', alignItems: { md: 'flex-start' } }}
+      >
+        <Stack direction="row" spacing={1.6} sx={{ minWidth: 0, flex: 1 }}>
+          <Skeleton variant="rounded" width={78} height={78} sx={{ borderRadius: uiRadius.lg }} />
+
+          <Stack spacing={0.55} sx={{ minWidth: 0, flex: 1 }}>
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+              <Skeleton variant="rounded" width={90} height={30} sx={{ borderRadius: uiRadius.sm }} />
+              <Skeleton variant="rounded" width={120} height={30} sx={{ borderRadius: uiRadius.sm }} />
+            </Stack>
+            <Skeleton variant="text" width="66%" height={42} />
+            <Skeleton variant="text" height={22} />
+            <Skeleton variant="text" width="76%" height={22} />
+          </Stack>
+        </Stack>
+
+        <Stack spacing={0.4} sx={{ minWidth: { md: 176 }, alignItems: { md: 'flex-end' } }}>
+          <Skeleton variant="text" width={84} height={22} />
+          <Skeleton variant="text" width={110} height={36} />
+        </Stack>
+      </Stack>
+
+      <Grid container spacing={1.5}>
+        {Array.from({ length: 4 }, (_, index) => (
+          <Grid key={`seller-order-metric-skeleton-${index}`} size={{ xs: 12, sm: 6 }}>
+            <Skeleton variant="rounded" height={88} sx={{ borderRadius: uiRadius.md }} />
+          </Grid>
+        ))}
+      </Grid>
+    </Stack>
+  </Paper>
+)
+
 export const SellerOrdersPage = () => {
   const { user, isAuthenticated } = useAuth()
   const { openAuthDialog } = useOutletContext<MainLayoutOutletContext>()
@@ -153,8 +246,7 @@ export const SellerOrdersPage = () => {
         sx={{
           p: { xs: 3, md: 4.5 },
           borderRadius: uiRadius.xl,
-          background:
-            'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
+          background: softAccentBackground,
         }}
       >
         <Stack spacing={2.25}>
@@ -174,8 +266,7 @@ export const SellerOrdersPage = () => {
           sx={{
             p: { xs: 3, md: 4 },
             borderRadius: uiRadius.xl,
-            background:
-              'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
+            background: softAccentBackgroundMuted,
           }}
         >
           <Stack spacing={2.5} sx={{ maxWidth: 720 }}>
@@ -210,8 +301,7 @@ export const SellerOrdersPage = () => {
           sx={{
             p: { xs: 3, md: 4 },
             borderRadius: uiRadius.xl,
-            background:
-              'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
+            background: softAccentBackgroundMuted,
           }}
         >
           <Stack spacing={2.5} sx={{ maxWidth: 760 }}>
@@ -245,74 +335,66 @@ export const SellerOrdersPage = () => {
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, md: 4 }}>
             <Stack spacing={3} sx={{ position: { md: 'sticky' }, top: { md: 104 }, alignSelf: 'flex-start' }}>
-              <Paper
-                sx={{
-                  p: 3,
-                  borderRadius: uiRadius.xl,
-                  background:
-                    'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
-                }}
-              >
-                <Stack spacing={2.5}>
-                  <ProfileAvatar name={user.name} size={78} />
+              {isLoading ? (
+                <SellerOrderSummarySkeleton />
+              ) : (
+                <Paper
+                  sx={{
+                    p: 3,
+                    borderRadius: uiRadius.xl,
+                    background: softAccentBackground,
+                  }}
+                >
+                  <Stack spacing={2.5}>
+                    <ProfileAvatar name={user.name} size={78} />
 
-                  <Stack spacing={0.8}>
-                    <Typography variant="h4" sx={{ lineHeight: 1.05 }}>
-                      {user.name}
-                    </Typography>
-                    <Typography color="text.secondary">{user.email}</Typography>
+                    <Stack spacing={0.8}>
+                      <Typography variant="h4" sx={{ lineHeight: 1.05 }}>
+                        {user.name}
+                      </Typography>
+                      <Typography color="text.secondary">{user.email}</Typography>
+                    </Stack>
+
+                    <DividerLight />
+
+                    <Stack spacing={1.2}>
+                      <SellerOrderMetaRow label="คำสั่งซื้อทั้งหมด" value={`${orders.length} รายการ`} />
+                      <SellerOrderMetaRow label="ผู้ซื้อที่ไม่ซ้ำกัน" value={`${uniqueBuyerCount} คน`} />
+                      <SellerOrderMetaRow label="ยอดรวมของร้าน" value={formatCurrency(totalRevenue)} />
+                      <SellerOrderMetaRow label="รายการล่าสุด" value={latestOrderDate} />
+                    </Stack>
+
+                    <Stack spacing={1.25}>
+                      <Button
+                        variant="contained"
+                        component={RouterLink}
+                        to="/seller/studio"
+                        startIcon={<StorefrontRoundedIcon />}
+                      >
+                        ลงขายสินค้า
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        component={RouterLink}
+                        to="/seller"
+                        endIcon={<ArrowOutwardRoundedIcon />}
+                      >
+                        กลับไปศูนย์ผู้ขาย
+                      </Button>
+                    </Stack>
                   </Stack>
-
-                  <DividerLight />
-
-                  <Stack spacing={1.2}>
-                    <SellerOrderMetaRow label="คำสั่งซื้อทั้งหมด" value={`${orders.length} รายการ`} />
-                    <SellerOrderMetaRow label="ผู้ซื้อที่ไม่ซ้ำกัน" value={`${uniqueBuyerCount} คน`} />
-                    <SellerOrderMetaRow label="ยอดรวมของร้าน" value={formatCurrency(totalRevenue)} />
-                    <SellerOrderMetaRow label="รายการล่าสุด" value={latestOrderDate} />
-                  </Stack>
-
-                  <Stack spacing={1.25}>
-                    <Button
-                      variant="contained"
-                      component={RouterLink}
-                      to="/seller/studio"
-                      startIcon={<StorefrontRoundedIcon />}
-                    >
-                      ลงขายสินค้า
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      component={RouterLink}
-                      to="/seller"
-                      endIcon={<ArrowOutwardRoundedIcon />}
-                    >
-                      กลับไปศูนย์ผู้ขาย
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Paper>
+                </Paper>
+              )}
             </Stack>
           </Grid>
 
           <Grid size={{ xs: 12, md: 8 }}>
             {isLoading ? (
-              <Paper
-                sx={{
-                  p: { xs: 3, md: 4 },
-                  borderRadius: uiRadius.xl,
-                  background:
-                    'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
-                }}
-              >
-                <Stack spacing={1}>
-                  <SectionBadge label="กำลังโหลดคำสั่งซื้อ" />
-                  <Typography variant="h4">กำลังเตรียมรายการที่ลูกค้าซื้อจากร้านของคุณ</Typography>
-                  <Typography color="text.secondary">
-                    ระบบกำลังดึงข้อมูลคำสั่งซื้อ ยอดขาย และสถานะการชำระเงินขึ้นมาแสดงในหน้านี้
-                  </Typography>
-                </Stack>
-              </Paper>
+              <Stack spacing={2}>
+                {Array.from({ length: 3 }, (_, index) => (
+                  <SellerOrderCardSkeleton key={`seller-order-card-skeleton-${index}`} />
+                ))}
+              </Stack>
             ) : null}
 
             {!isLoading && error ? (
@@ -320,8 +402,7 @@ export const SellerOrdersPage = () => {
                 sx={{
                   p: { xs: 3, md: 4 },
                   borderRadius: uiRadius.xl,
-                  background:
-                    'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
+                  background: softAccentBackgroundMuted,
                 }}
               >
                 <Stack spacing={1}>
@@ -337,8 +418,7 @@ export const SellerOrdersPage = () => {
                 sx={{
                   p: { xs: 3, md: 4 },
                   borderRadius: uiRadius.xl,
-                  background:
-                    'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
+                  background: softAccentBackgroundMuted,
                 }}
               >
                 <Stack spacing={2.25}>

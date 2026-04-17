@@ -1,6 +1,6 @@
 import { Avatar } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material'
-import { uiRadius } from '@/theme/uiTokens'
+import { accentGradientDark, accentPalette, uiRadius } from '@/theme/uiTokens'
 
 interface ProfileAvatarProps {
   name: string
@@ -32,13 +32,13 @@ export const ProfileAvatar = ({ name, size = 42, sx }: ProfileAvatarProps) => {
         width: size,
         height: size,
         borderRadius: uiRadius.md,
-        background: 'linear-gradient(180deg, #111111 0%, #3b3b40 100%)',
+        background: accentGradientDark,
         color: '#ffffff',
         fontWeight: 800,
         fontSize: `${Math.max(size * 0.3, 13)}px`,
         letterSpacing: '-0.03em',
         boxShadow: '0 16px 34px rgba(17, 17, 17, 0.16)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: `1px solid ${accentPalette.border}`,
         ...sx,
       }}
     >

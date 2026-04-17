@@ -19,17 +19,23 @@ import {
   sellerUploadChecklist,
 } from '@/constants/marketplace'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
-import { glassSurfaceMutedSx, uiRadius } from '@/theme/uiTokens'
+import {
+  accentGradientDark,
+  glassSurfaceMutedSx,
+  softAccentBackground,
+  softAccentBackgroundMuted,
+  uiRadius,
+} from '@/theme/uiTokens'
 
 const sellerPrimaryActionSx = {
   px: 3.25,
   minHeight: 54,
   borderRadius: uiRadius.md,
-  background: 'linear-gradient(180deg, #111111 0%, #2f2f34 100%)',
+  background: accentGradientDark,
   boxShadow: '0 18px 34px rgba(17, 17, 17, 0.16)',
   fontWeight: 700,
   '&:hover': {
-    background: 'linear-gradient(180deg, #111111 0%, #26262b 100%)',
+    background: 'linear-gradient(145deg, #151722 0%, #304286 52%, #a17bff 100%)',
     boxShadow: '0 24px 40px rgba(17, 17, 17, 0.22)',
   },
 } as const
@@ -52,8 +58,7 @@ export const SellerPage = () => {
         sx={{
           p: { xs: 3, md: 4.5 },
           borderRadius: uiRadius.xl,
-          background:
-            'linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(245, 245, 248, 0.78) 100%)',
+          background: softAccentBackground,
         }}
       >
         <Stack spacing={3}>
@@ -95,10 +100,10 @@ export const SellerPage = () => {
             <Button
               variant="outlined"
               component={RouterLink}
-              to="/"
+              to="/catalog"
               endIcon={<ArrowOutwardRoundedIcon />}
             >
-              กลับไปดูสินค้าทั้งหมด
+              ไปหน้ารวมซอร์สโค้ดและเทมเพลต
             </Button>
           </Stack>
 
@@ -147,8 +152,7 @@ export const SellerPage = () => {
         sx={{
           p: { xs: 3, md: 3.5 },
           borderRadius: uiRadius.xl,
-          background:
-            'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
+          background: softAccentBackgroundMuted,
         }}
       >
         <Stack spacing={2.25}>

@@ -5,8 +5,11 @@ import { DownloadsPage } from '@/pages/DownloadsPage'
 import { HomePage } from '@/pages/HomePage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { ProductDetailPage } from '@/pages/ProductDetailPage'
+import { ProductsCatalogPage } from '@/pages/ProductsCatalogPage'
 import { SellerPage } from '@/pages/SellerPage'
+import { SellerStorePage } from '@/pages/SellerStorePage'
 import { SellerOrdersPage } from '@/pages/SellerOrdersPage'
+import { SellersDirectoryPage } from '@/pages/SellersDirectoryPage'
 import { SellerStudioPage } from '@/pages/SellerStudioPage'
 
 export const router = createBrowserRouter([
@@ -29,6 +32,18 @@ export const router = createBrowserRouter([
       {
         path: 'products/:productId',
         element: <ProductDetailPage />,
+      },
+      {
+        path: 'catalog',
+        element: <ProductsCatalogPage />,
+      },
+      {
+        path: 'sellers',
+        element: <SellersDirectoryPage />,
+      },
+      {
+        path: 'sellers/:sellerSlug',
+        element: <SellerStorePage />,
       },
       {
         path: 'seller',

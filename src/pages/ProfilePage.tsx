@@ -25,14 +25,28 @@ import { IOSSwitch } from '@/components/common/IOSSwitch'
 import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
-import { glassSurfaceMutedSx, uiRadius } from '@/theme/uiTokens'
+import {
+  glassSurfaceMutedSx,
+  softAccentBackground,
+  softAccentBackgroundMuted,
+  uiRadius,
+} from '@/theme/uiTokens'
 import type { AuthProfileUpdate, AuthSessionUser } from '@/types/auth'
+import {
+  formatCardExpiryInput,
+  formatCardNumberInput,
+  hasSavedCard,
+  maskCardNumber,
+} from '@/utils/paymentCard'
 
 type ProfileFormState = Pick<
   AuthSessionUser,
   | 'name'
   | 'phoneNumber'
   | 'storeName'
+  | 'savedCardHolderName'
+  | 'savedCardNumber'
+  | 'savedCardExpiry'
   | 'bankName'
   | 'bankAccountNumber'
   | 'bankBookImageName'
@@ -60,6 +74,9 @@ const createProfileFormState = (user: AuthSessionUser): ProfileFormState => ({
   name: user.name,
   phoneNumber: user.phoneNumber,
   storeName: user.storeName,
+  savedCardHolderName: user.savedCardHolderName,
+  savedCardNumber: user.savedCardNumber,
+  savedCardExpiry: user.savedCardExpiry,
   bankName: user.bankName,
   bankAccountNumber: user.bankAccountNumber,
   bankBookImageName: user.bankBookImageName,
@@ -187,10 +204,18 @@ const AuthenticatedProfileContent = ({
 
   const accountTypeLabel = user.role === 'seller' ? 'บัญชีผู้ขาย' : 'บัญชีผู้ซื้อ'
   const isSeller = user.role === 'seller'
+  const hasSavedPaymentCard = hasSavedCard(
+    form.savedCardHolderName,
+    form.savedCardNumber,
+    form.savedCardExpiry,
+  )
   const isDirty =
     form.name !== user.name ||
     form.phoneNumber !== user.phoneNumber ||
     form.storeName !== user.storeName ||
+    form.savedCardHolderName !== user.savedCardHolderName ||
+    form.savedCardNumber !== user.savedCardNumber ||
+    form.savedCardExpiry !== user.savedCardExpiry ||
     form.bankName !== user.bankName ||
     form.bankAccountNumber !== user.bankAccountNumber ||
     form.bankBookImageName !== user.bankBookImageName ||
@@ -250,6 +275,9 @@ const AuthenticatedProfileContent = ({
       name: form.name.trim() || user.name,
       phoneNumber: form.phoneNumber.trim(),
       storeName: form.storeName.trim(),
+      savedCardHolderName: form.savedCardHolderName.trim(),
+      savedCardNumber: form.savedCardNumber,
+      savedCardExpiry: form.savedCardExpiry,
       bankName: form.bankName.trim(),
       bankAccountNumber: form.bankAccountNumber.trim(),
       bankBookImageName: form.bankBookImageName.trim(),
@@ -281,8 +309,7 @@ const AuthenticatedProfileContent = ({
             sx={{
               p: 3,
               borderRadius: uiRadius.xl,
-              background:
-                'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
+              background: softAccentBackground,
             }}
           >
             <Stack spacing={2.5}>
@@ -303,6 +330,10 @@ const AuthenticatedProfileContent = ({
                 <AccountMetaRow label="สถานะข้อมูล" value="บันทึกในเครื่อง" />
                 <AccountMetaRow label="อีเมลบัญชี" value={user.email} />
                 <AccountMetaRow label="เบอร์โทร" value={form.phoneNumber || 'ยังไม่ระบุ'} />
+                <AccountMetaRow
+                  label="บัตรที่บันทึก"
+                  value={hasSavedPaymentCard ? maskCardNumber(form.savedCardNumber) : 'ยังไม่เพิ่ม'}
+                />
                 {isSeller ? (
                   <>
                     <AccountMetaRow
@@ -356,8 +387,7 @@ const AuthenticatedProfileContent = ({
             sx={{
               p: { xs: 3, md: 3.5 },
               borderRadius: uiRadius.xl,
-              background:
-                'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
+              background: softAccentBackground,
             }}
           >
             <Stack spacing={2.5}>
@@ -397,6 +427,116 @@ const AuthenticatedProfileContent = ({
                 </Grid>
               </Grid>
 
+              <Divider />
+
+              <Stack spacing={2}>
+                <Box>
+                  <Typography variant="h5">บัตรเครดิต / เดบิต</Typography>
+                  <Typography color="text.secondary" sx={{ mt: 0.8 }}>
+                    เพิ่มบัตรที่ต้องการใช้ซื้อสินค้าในภายหลังได้จากส่วนนี้ และถ้าคุณกรอกบัตรที่หน้า
+                    checkout ระบบจะนำกลับมาบันทึกไว้ตรงนี้ให้อัตโนมัติ
+                  </Typography>
+                </Box>
+
+                <Paper
+                  sx={{
+                    p: 2.5,
+                    borderRadius: uiRadius.lg,
+                    background: 'linear-gradient(145deg, #111216 0%, #26376a 50%, #9876ff 100%)',
+                    color: 'common.white',
+                  }}
+                >
+                  <Stack spacing={3.25}>
+                    <Typography sx={{ color: 'rgba(255, 255, 255, 0.72)' }}>
+                      บัตรที่บันทึกไว้ในโปรไฟล์
+                    </Typography>
+                    <Typography variant="h4" sx={{ letterSpacing: '0.08em' }}>
+                      {maskCardNumber(form.savedCardNumber)}
+                    </Typography>
+                    <Stack direction="row" spacing={2} sx={{ justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: 'rgba(255, 255, 255, 0.66)' }}
+                        >
+                          ชื่อบนบัตร
+                        </Typography>
+                        <Typography variant="h6" sx={{ mt: 0.4 }}>
+                          {form.savedCardHolderName.trim().toUpperCase() || 'CARDHOLDER NAME'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: 'rgba(255, 255, 255, 0.66)' }}
+                        >
+                          วันหมดอายุ
+                        </Typography>
+                        <Typography variant="h6" sx={{ mt: 0.4 }}>
+                          {form.savedCardExpiry || 'MM/YY'}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Stack>
+                </Paper>
+
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth
+                      label="ชื่อบนบัตร"
+                      value={form.savedCardHolderName}
+                      onChange={(event) =>
+                        handleFieldChange('savedCardHolderName', event.target.value)
+                      }
+                      placeholder="เช่น PACHARA AMORN"
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth
+                      label="หมายเลขบัตร"
+                      value={form.savedCardNumber}
+                      onChange={(event) =>
+                        handleFieldChange(
+                          'savedCardNumber',
+                          formatCardNumberInput(event.target.value),
+                        )
+                      }
+                      placeholder="1234 5678 9012 3456"
+                      slotProps={{
+                        htmlInput: {
+                          inputMode: 'numeric',
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth
+                      label="วันหมดอายุ"
+                      value={form.savedCardExpiry}
+                      onChange={(event) =>
+                        handleFieldChange(
+                          'savedCardExpiry',
+                          formatCardExpiryInput(event.target.value),
+                        )
+                      }
+                      placeholder="MM/YY"
+                      slotProps={{
+                        htmlInput: {
+                          inputMode: 'numeric',
+                        },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+
+                <Typography color="text.secondary">
+                  ระบบจะไม่บันทึก CVC ไว้ในโปรไฟล์ และจะให้กรอกใหม่เฉพาะตอนชำระเงินจริงทุกครั้ง
+                </Typography>
+              </Stack>
+
             </Stack>
           </Paper>
 
@@ -405,7 +545,7 @@ const AuthenticatedProfileContent = ({
               sx={{
                 p: { xs: 3, md: 3.5 },
                 borderRadius: uiRadius.xl,
-                backgroundColor: 'rgba(255, 255, 255, 0.72)',
+                ...glassSurfaceMutedSx,
               }}
             >
               <Stack spacing={2.5}>
@@ -477,7 +617,7 @@ const AuthenticatedProfileContent = ({
             sx={{
               p: { xs: 3, md: 3.5 },
               borderRadius: uiRadius.xl,
-              backgroundColor: 'rgba(255, 255, 255, 0.72)',
+              ...glassSurfaceMutedSx,
             }}
           >
             <Stack spacing={2.5}>
@@ -516,7 +656,7 @@ const AuthenticatedProfileContent = ({
                   <Box>
                     <Typography variant="h6">ข่าวสารและอัปเดตแพลตฟอร์ม</Typography>
                     <Typography color="text.secondary">
-                      รับข่าวหมวดใหม่ โปรโมชัน และอัปเดตเกี่ยวกับ marketplace
+                      รับข่าวหมวดใหม่ โปรโมชัน และอัปเดตเกี่ยวกับ CodeBazaar
                     </Typography>
                   </Box>
                   <IOSSwitch
@@ -579,8 +719,7 @@ export const ProfilePage = () => {
         sx={{
           p: { xs: 3, md: 4.5 },
           borderRadius: uiRadius.xl,
-          background:
-            'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
+          background: softAccentBackground,
         }}
       >
         <Stack spacing={2.25}>
@@ -607,8 +746,7 @@ export const ProfilePage = () => {
           sx={{
             p: { xs: 3, md: 4 },
             borderRadius: uiRadius.xl,
-            background:
-              'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
+            background: softAccentBackgroundMuted,
           }}
         >
           <Stack spacing={2.5} sx={{ maxWidth: 720 }}>
@@ -629,10 +767,10 @@ export const ProfilePage = () => {
               <Button
                 variant="outlined"
                 component={RouterLink}
-                to="/"
+                to="/catalog"
                 endIcon={<ArrowOutwardRoundedIcon />}
               >
-                กลับไปดูสินค้าทั้งหมด
+                ไปหน้ารวมซอร์สโค้ดและเทมเพลต
               </Button>
             </Stack>
           </Stack>

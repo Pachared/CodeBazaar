@@ -27,7 +27,12 @@ import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { CookieBanner } from '@/components/cookies/CookieBanner'
 import { CookieSettingsDialog } from '@/components/cookies/CookieSettingsDialog'
 import { useCookieConsent } from '@/app/providers/useCookieConsent'
-import { uiRadius } from '@/theme/uiTokens'
+import {
+  accentGradientDark,
+  accentPalette,
+  softAccentBackground,
+  uiRadius,
+} from '@/theme/uiTokens'
 import type { AuthDialogMode } from '@/types/auth'
 
 export interface MainLayoutOutletContext {
@@ -101,8 +106,8 @@ export const MainLayout = () => {
         elevation={0}
         sx={{
           backdropFilter: 'blur(28px)',
-          backgroundColor: 'rgba(250, 250, 252, 0.7)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.74)',
+          backgroundColor: 'rgba(250, 251, 255, 0.72)',
+          borderBottom: `1px solid ${accentPalette.border}`,
         }}
       >
         <Container maxWidth="lg">
@@ -126,7 +131,7 @@ export const MainLayout = () => {
                   display: 'grid',
                   placeItems: 'center',
                   borderRadius: uiRadius.sm,
-                  background: 'linear-gradient(180deg, #111111 0%, #3b3b40 100%)',
+                  background: accentGradientDark,
                   boxShadow: '0 24px 44px rgba(17, 17, 17, 0.18)',
                 }}
               >
@@ -225,7 +230,7 @@ export const MainLayout = () => {
                   width: 42,
                   height: 42,
                   borderRadius: uiRadius.sm,
-                  color: '#4a4a4d',
+                  color: accentPalette.text,
                   backgroundColor: 'transparent',
                 }}
               >
@@ -241,6 +246,8 @@ export const MainLayout = () => {
                       borderRadius: uiRadius.pill,
                       fontSize: '0.68rem',
                       fontWeight: 700,
+                      background: accentGradientDark,
+                      color: '#ffffff',
                       top: 6,
                       right: 4,
                     },
@@ -270,9 +277,8 @@ export const MainLayout = () => {
             sx={{
               p: { xs: 3, md: 3.5 },
               borderRadius: uiRadius.xl,
-              border: '1px solid rgba(255, 255, 255, 0.84)',
-              background:
-                'linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(245,245,248,0.78) 100%)',
+              border: `1px solid ${accentPalette.border}`,
+              background: softAccentBackground,
               boxShadow: '0 18px 44px rgba(15, 15, 16, 0.06)',
             }}
           >
@@ -285,7 +291,7 @@ export const MainLayout = () => {
                     display: 'grid',
                     placeItems: 'center',
                     borderRadius: uiRadius.md,
-                    background: 'linear-gradient(180deg, #111111 0%, #3b3b40 100%)',
+                    background: accentGradientDark,
                     boxShadow: '0 20px 40px rgba(17, 17, 17, 0.14)',
                   }}
                 >
@@ -302,8 +308,8 @@ export const MainLayout = () => {
               </Stack>
 
               <Typography color="text.secondary" sx={{ maxWidth: 760 }}>
-                CodeBazaar คือระบบ marketplace สำหรับรวม source code, template และโครงงานพร้อมใช้
-                ไว้ในที่เดียว โดยออกแบบให้ผู้ซื้อค้นหา เปรียบเทียบ และเลือกซื้อโปรเจกต์ได้ง่าย
+                CodeBazaar คือพื้นที่รวมซอร์สโค้ด เทมเพลต และชุดคอมโพเนนต์ที่แยกให้เลือกดูได้ทั้งแบบ
+                รายชื่อผู้ขายทั้งหมดและแบบรายการขายทั้งหมด เพื่อให้ผู้ซื้อเข้าถึงร้านของผู้ขายหรือหน้ารายละเอียดสินค้าได้ง่าย
                 ขณะเดียวกันก็รองรับผู้ขายที่ต้องการเปิดร้าน จัดหมวดหมู่ ตั้งราคา และต่อยอดไปสู่ระบบขายจริงในอนาคต
               </Typography>
 

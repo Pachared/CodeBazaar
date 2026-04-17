@@ -12,9 +12,9 @@ import { useState } from 'react'
 import { useCookieConsent } from '@/app/providers/useCookieConsent'
 import { CloseActionButton } from '@/components/common/CloseActionButton'
 import { IOSSwitch } from '@/components/common/IOSSwitch'
+import { accentPalette, uiRadius } from '@/theme/uiTokens'
 import type { CookiePreferences, StoredCookieConsent } from '@/types/cookie'
 import { defaultCookiePreferences } from '@/utils/cookieConsent'
-import { uiRadius } from '@/theme/uiTokens'
 
 const cookieOptions: Array<{
   key: keyof CookiePreferences
@@ -112,8 +112,9 @@ const CookieSettingsDialogContent = ({
               sx={{
                 p: 2,
                 borderRadius: uiRadius.lg,
-                border: '1px solid rgba(17, 17, 17, 0.08)',
-                backgroundColor: 'rgba(255, 255, 255, 0.64)',
+                border: `1px solid ${accentPalette.border}`,
+                backgroundColor: 'rgba(255, 255, 255, 0.46)',
+                backdropFilter: 'blur(20px) saturate(136%)',
               }}
             >
               <Stack

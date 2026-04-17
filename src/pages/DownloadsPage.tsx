@@ -18,7 +18,14 @@ import { useDownloads } from '@/app/providers/useDownloads'
 import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
-import { glassSurfaceMutedSx, metricSurfaceSx, uiRadius } from '@/theme/uiTokens'
+import {
+  accentGradientDark,
+  glassSurfaceMutedSx,
+  metricSurfaceSx,
+  softAccentBackground,
+  softAccentBackgroundMuted,
+  uiRadius,
+} from '@/theme/uiTokens'
 import type { DownloadLibraryItem } from '@/types/downloads'
 import { formatCurrency } from '@/utils/formatCurrency'
 
@@ -83,7 +90,7 @@ const DownloadLibraryCard = ({
               display: 'grid',
               placeItems: 'center',
               borderRadius: uiRadius.lg,
-              background: 'linear-gradient(180deg, #111111 0%, #37373c 100%)',
+              background: accentGradientDark,
               color: 'common.white',
               boxShadow: '0 18px 34px rgba(17, 17, 17, 0.16)',
             }}
@@ -194,8 +201,7 @@ export const DownloadsPage = () => {
         sx={{
           p: { xs: 3, md: 4.5 },
           borderRadius: uiRadius.xl,
-          background:
-            'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
+          background: softAccentBackground,
         }}
       >
         <Stack spacing={2.25}>
@@ -215,16 +221,11 @@ export const DownloadsPage = () => {
           sx={{
             p: { xs: 3, md: 4 },
             borderRadius: uiRadius.xl,
-            background:
-              'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
+            background: softAccentBackgroundMuted,
           }}
         >
           <Stack spacing={2.5} sx={{ maxWidth: 720 }}>
-            <Box sx={{ ...metricSurfaceSx, maxWidth: 420 }}>
-              <Typography variant="body2" color="text.secondary">
-                ยังไม่มีบัญชีที่กำลังใช้งานอยู่
-              </Typography>
-            </Box>
+            <SectionBadge label="ยังไม่มีบัญชีที่กำลังใช้งานอยู่" />
             <Typography variant="h4">เข้าสู่ระบบก่อนเพื่อเข้าคลังดาวน์โหลดของคุณ</Typography>
             <Typography color="text.secondary">
               ใช้บัญชี Google เดิมที่ซื้อสินค้าไว้ เพื่อเปิดดูรายการดาวน์โหลดและกลับมาโหลดไฟล์ได้ตลอด
@@ -240,10 +241,10 @@ export const DownloadsPage = () => {
               <Button
                 variant="outlined"
                 component={RouterLink}
-                to="/"
+                to="/catalog"
                 endIcon={<ArrowOutwardRoundedIcon />}
               >
-                กลับไปดูสินค้าทั้งหมด
+                ไปหน้ารวมซอร์สโค้ดและเทมเพลต
               </Button>
             </Stack>
           </Stack>
@@ -253,8 +254,7 @@ export const DownloadsPage = () => {
           sx={{
             p: { xs: 3, md: 4 },
             borderRadius: uiRadius.xl,
-            background:
-              'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 245, 248, 0.76) 100%)',
+            background: softAccentBackgroundMuted,
           }}
         >
           <Stack spacing={2.5} sx={{ alignItems: 'flex-start', maxWidth: 760 }}>
@@ -269,8 +269,8 @@ export const DownloadsPage = () => {
               </Typography>
             </Box>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-              <Button variant="contained" component={RouterLink} to="/">
-                กลับไปเลือกซื้อ
+              <Button variant="contained" component={RouterLink} to="/catalog">
+                ไปหน้ารวมซอร์สโค้ดและเทมเพลต
               </Button>
               <Button
                 variant="outlined"
@@ -294,8 +294,7 @@ export const DownloadsPage = () => {
                 sx={{
                   p: { xs: 3, md: 3.5 },
                   borderRadius: uiRadius.xl,
-                  background:
-                    'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
+                  background: softAccentBackground,
                 }}
               >
                 <Stack spacing={2.5}>
@@ -324,10 +323,10 @@ export const DownloadsPage = () => {
                     <Button
                       variant="contained"
                       component={RouterLink}
-                      to="/"
+                      to="/catalog"
                       startIcon={<Inventory2RoundedIcon />}
                     >
-                      เลือกซื้อสินค้าเพิ่ม
+                      ไปหน้ารวมซอร์สโค้ดและเทมเพลต
                     </Button>
                     <Button
                       variant="outlined"

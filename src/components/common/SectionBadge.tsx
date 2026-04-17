@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
 import { Chip } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material'
-import { glassSurfaceMutedSx, uiRadius } from '@/theme/uiTokens'
+import { accentPalette, glassSurfaceMutedSx, uiRadius } from '@/theme/uiTokens'
 
 interface SectionBadgeProps {
   label: string
@@ -23,7 +23,7 @@ export const SectionBadge = ({ label, icon, onClick, sx }: SectionBadgeProps) =>
         alignSelf: 'flex-start',
         height: 32,
         borderRadius: uiRadius.sm,
-        color: 'text.primary',
+        color: accentPalette.text,
         fontWeight: 600,
         '& .MuiChip-icon': {
           color: 'inherit',

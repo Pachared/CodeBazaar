@@ -5,6 +5,7 @@ import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded'
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded'
 import GoogleIcon from '@mui/icons-material/Google'
+import ImageRoundedIcon from '@mui/icons-material/ImageRounded'
 import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded'
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
@@ -20,7 +21,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import type { ReactNode } from 'react'
+import type { ChangeEvent, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useOutletContext } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
@@ -32,7 +33,13 @@ import { IOSSwitch } from '@/components/common/IOSSwitch'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
 import { checkoutService } from '@/services/api/checkout.service'
-import { glassSurfaceMutedSx, metricSurfaceSx, uiRadius } from '@/theme/uiTokens'
+import {
+  accentGradientDark,
+  glassSurfaceMutedSx,
+  metricSurfaceSx,
+  softAccentBackground,
+  uiRadius,
+} from '@/theme/uiTokens'
 import type {
   CheckoutPaymentMethod,
   CheckoutSubmitInput,
@@ -41,6 +48,13 @@ import type {
 import type { CartItem } from '@/types/cart'
 import type { AuthSessionUser } from '@/types/auth'
 import { formatCurrency } from '@/utils/formatCurrency'
+import {
+  formatCardCvcInput,
+  formatCardExpiryInput,
+  formatCardNumberInput,
+  hasSavedCard,
+  maskCardNumber,
+} from '@/utils/paymentCard'
 
 interface CheckoutFormState {
   customerName: string
@@ -52,6 +66,13 @@ interface CheckoutFormState {
   paymentMethod: CheckoutPaymentMethod
   receivePurchaseUpdates: boolean
   requireInvoice: boolean
+  cardHolderName: string
+  cardNumber: string
+  cardExpiry: string
+  cardCvc: string
+  bankTransferReference: string
+  bankTransferSlipName: string
+  bankTransferSlipUrl: string
 }
 
 interface CompletedOrderState {
@@ -97,6 +118,47 @@ const paymentMethodLabelMap: Record<CheckoutPaymentMethod, string> = paymentMeth
   {} as Record<CheckoutPaymentMethod, string>,
 )
 
+const mockPromptPayAccount = {
+  accountName: 'CodeBazaar ทดลอง',
+  promptPayId: '081-234-5678',
+} as const
+
+const mockBankTransferAccount = {
+  bankName: 'ธนาคารกสิกรไทย',
+  accountName: 'CodeBazaar ทดลอง',
+  accountNumber: '123-4-56789-0',
+} as const
+
+const buildPromptPayReference = (total: number, itemCount: number) =>
+  `CBZ-${String(itemCount).padStart(2, '0')}-${String(total).padStart(5, '0')}`
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('ไม่สามารถอ่านไฟล์รูปภาพได้'))
+    }
+
+    reader.onerror = () => reject(new Error('ไม่สามารถอ่านไฟล์รูปภาพได้'))
+    reader.readAsDataURL(file)
+  })
+
+const formatUploadFileMeta = (file: File) => {
+  const sizeInKb = file.size / 1024
+
+  if (sizeInKb < 1024) {
+    return `${file.name} · ${Math.max(1, Math.round(sizeInKb))} KB`
+  }
+
+  return `${file.name} · ${(sizeInKb / 1024).toFixed(1)} MB`
+}
+
 const createCheckoutFormState = (user: AuthSessionUser | null): CheckoutFormState => ({
   customerName: user?.name ?? '',
   customerEmail: user?.email ?? '',
@@ -107,6 +169,13 @@ const createCheckoutFormState = (user: AuthSessionUser | null): CheckoutFormStat
   paymentMethod: 'promptpay',
   receivePurchaseUpdates: true,
   requireInvoice: false,
+  cardHolderName: user?.savedCardHolderName || user?.name || '',
+  cardNumber: user?.savedCardNumber ?? '',
+  cardExpiry: user?.savedCardExpiry ?? '',
+  cardCvc: '',
+  bankTransferReference: '',
+  bankTransferSlipName: '',
+  bankTransferSlipUrl: '',
 })
 
 const SummaryRow = ({ label, value }: { label: string; value: string }) => (
@@ -148,6 +217,76 @@ const CheckoutMetricCard = ({
   </Paper>
 )
 
+const PaymentDetailInfoCard = ({ label, value }: { label: string; value: string }) => (
+  <Paper sx={{ ...metricSurfaceSx, p: 1.5, height: '100%' }}>
+    <Stack spacing={0.5}>
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="h6" sx={{ lineHeight: 1.3 }}>
+        {value}
+      </Typography>
+    </Stack>
+  </Paper>
+)
+
+interface PaymentSlipUploadCardProps {
+  fileName: string
+  imageUrl: string
+  onSelect: (event: ChangeEvent<HTMLInputElement>) => void
+}
+
+const PaymentSlipUploadCard = ({
+  fileName,
+  imageUrl,
+  onSelect,
+}: PaymentSlipUploadCardProps) => (
+  <Paper sx={{ ...metricSurfaceSx, p: 1.8, borderRadius: uiRadius.lg }}>
+    <Stack spacing={1.6}>
+      <Box
+        sx={{
+          width: '100%',
+          height: 180,
+          overflow: 'hidden',
+          display: 'grid',
+          placeItems: 'center',
+          borderRadius: uiRadius.lg,
+          backgroundColor: 'rgba(17, 17, 17, 0.04)',
+          border: '1px solid rgba(17, 17, 17, 0.08)',
+        }}
+      >
+        {imageUrl ? (
+          <Box
+            component="img"
+            src={imageUrl}
+            alt="สลิปการโอนเงิน"
+            sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <ImageRoundedIcon sx={{ fontSize: 40, color: 'rgba(17, 17, 17, 0.28)' }} />
+        )}
+      </Box>
+
+      <Box>
+        <Typography variant="h6">แนบสลิปการโอนเงิน</Typography>
+        <Typography color="text.secondary">
+          อัปโหลดรูปสลิปหรือภาพหน้ารายการโอนเพื่อใช้ยืนยันคำสั่งซื้อ
+        </Typography>
+      </Box>
+
+      <Stack spacing={1}>
+        <Typography color={fileName ? 'text.primary' : 'text.secondary'} sx={{ wordBreak: 'break-all' }}>
+          {fileName || 'ยังไม่ได้เลือกไฟล์'}
+        </Typography>
+        <Button component="label" variant="outlined" sx={{ alignSelf: 'flex-start' }}>
+          อัปโหลดสลิป
+          <input hidden type="file" accept="image/*" onChange={onSelect} />
+        </Button>
+      </Stack>
+    </Stack>
+  </Paper>
+)
+
 const CheckoutLineItemCard = ({ item }: { item: CartItem }) => {
   const previewLabel = item.category.slice(0, 2)
 
@@ -160,7 +299,7 @@ const CheckoutLineItemCard = ({ item }: { item: CartItem }) => {
             height: 66,
             flexShrink: 0,
             borderRadius: uiRadius.lg,
-            background: 'linear-gradient(180deg, #111111 0%, #37373c 100%)',
+            background: accentGradientDark,
             color: 'common.white',
             display: 'grid',
             placeItems: 'center',
@@ -293,12 +432,28 @@ export const CheckoutPage = () => {
   }, [user])
 
   const hasItems = cartItems.length > 0
-  const isFormValid =
+  const promptPayReference = buildPromptPayReference(cartTotal, cartItems.length)
+  const cardNumberDigits = form.cardNumber.replace(/\D/g, '')
+  const hasBuyerDetails =
     form.customerName.trim().length > 0 &&
     form.customerEmail.trim().length > 0 &&
-    form.customerPhone.trim().length > 0 &&
-    (!form.requireInvoice ||
-      (form.companyName.trim().length > 0 && form.taxId.trim().length > 0))
+    form.customerPhone.trim().length > 0
+  const hasInvoiceDetails =
+    !form.requireInvoice ||
+    (form.companyName.trim().length > 0 && form.taxId.trim().length > 0)
+  const isCardPaymentValid =
+    form.cardHolderName.trim().length > 0 &&
+    cardNumberDigits.length >= 15 &&
+    /^\d{2}\/\d{2}$/.test(form.cardExpiry) &&
+    form.cardCvc.length >= 3
+  const isBankTransferValid =
+    form.bankTransferReference.trim().length > 0 && form.bankTransferSlipName.trim().length > 0
+  const isPaymentDetailsValid =
+    form.paymentMethod === 'card'
+      ? isCardPaymentValid
+      : form.paymentMethod === 'bank-transfer'
+        ? isBankTransferValid
+        : true
 
   const handleFieldChange = <Key extends keyof CheckoutFormState>(
     key: Key,
@@ -308,6 +463,32 @@ export const CheckoutPage = () => {
       ...currentForm,
       [key]: value,
     }))
+  }
+
+  const handleBankTransferSlipSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    event.target.value = ''
+
+    void readFileAsDataUrl(file)
+      .then((dataUrl) => {
+        setForm((currentForm) => ({
+          ...currentForm,
+          bankTransferSlipName: formatUploadFileMeta(file),
+          bankTransferSlipUrl: dataUrl,
+        }))
+      })
+      .catch((error) => {
+        notify({
+          severity: 'error',
+          title: 'อัปโหลดสลิปไม่สำเร็จ',
+          message: error instanceof Error ? error.message : 'ลองเลือกไฟล์รูปใหม่อีกครั้ง',
+        })
+      })
   }
 
   const handleSubmit = async () => {
@@ -325,11 +506,23 @@ export const CheckoutPage = () => {
       return
     }
 
-    if (!isFormValid) {
+    if (!hasBuyerDetails || !hasInvoiceDetails) {
       notify({
         severity: 'warning',
         title: 'ข้อมูลการชำระเงินยังไม่ครบ',
         message: 'กรอกชื่อผู้ซื้อ อีเมล เบอร์โทร และข้อมูลใบกำกับให้ครบก่อนยืนยันคำสั่งซื้อ',
+      })
+      return
+    }
+
+    if (!isPaymentDetailsValid) {
+      notify({
+        severity: 'warning',
+        title: 'ข้อมูลช่องทางชำระเงินยังไม่ครบ',
+        message:
+          form.paymentMethod === 'card'
+            ? 'กรอกชื่อบนบัตร หมายเลขบัตร วันหมดอายุ และ CVC ให้ครบก่อนยืนยันคำสั่งซื้อ'
+            : 'กรอกเลขอ้างอิงการโอนและแนบสลิปการโอนก่อนยืนยันคำสั่งซื้อ',
       })
       return
     }
@@ -349,16 +542,59 @@ export const CheckoutPage = () => {
       subtotal: cartTotal,
       total: cartTotal,
       items: cartItems,
+      paymentDetails:
+        form.paymentMethod === 'promptpay'
+          ? {
+              promptpay: {
+                accountName: mockPromptPayAccount.accountName,
+                promptPayId: mockPromptPayAccount.promptPayId,
+                referenceCode: promptPayReference,
+              },
+            }
+          : form.paymentMethod === 'card'
+            ? {
+                card: {
+                  cardHolderName: form.cardHolderName.trim(),
+                  cardNumberMasked: maskCardNumber(form.cardNumber),
+                  expiry: form.cardExpiry,
+                },
+              }
+            : {
+                bankTransfer: {
+                  bankName: mockBankTransferAccount.bankName,
+                  accountName: mockBankTransferAccount.accountName,
+                  accountNumber: mockBankTransferAccount.accountNumber,
+                  transferReference: form.bankTransferReference.trim(),
+                  slipImageName: form.bankTransferSlipName,
+                },
+              },
     }
 
     try {
       const response = await checkoutService.submitOrder(payload)
       const purchasedAt = new Date().toISOString()
 
-      if (payload.customerPhone !== user.phoneNumber) {
-        updateProfile({
-          phoneNumber: payload.customerPhone,
-        })
+      const nextProfile = {
+        ...(payload.customerPhone !== user.phoneNumber
+          ? {
+              phoneNumber: payload.customerPhone,
+            }
+          : {}),
+        ...(form.paymentMethod === 'card' &&
+        (!hasSavedCard(user.savedCardHolderName, user.savedCardNumber, user.savedCardExpiry) ||
+          user.savedCardHolderName !== form.cardHolderName.trim() ||
+          user.savedCardNumber !== form.cardNumber ||
+          user.savedCardExpiry !== form.cardExpiry)
+          ? {
+              savedCardHolderName: form.cardHolderName.trim(),
+              savedCardNumber: form.cardNumber,
+              savedCardExpiry: form.cardExpiry,
+            }
+          : {}),
+      }
+
+      if (Object.keys(nextProfile).length > 0) {
+        updateProfile(nextProfile)
       }
 
       addCompletedOrderToLibrary({
@@ -420,7 +656,7 @@ export const CheckoutPage = () => {
             >
               เข้าสู่ระบบด้วย Google
             </Button>
-            <Button variant="outlined" component={RouterLink} to="/">
+            <Button variant="outlined" component={RouterLink} to="/catalog">
               กลับไปเลือกซื้อ
             </Button>
           </Stack>
@@ -451,10 +687,10 @@ export const CheckoutPage = () => {
                 ยังไม่มีรายการสำหรับชำระเงิน
               </Typography>
               <Typography color="text.secondary" sx={{ mt: 1.2 }}>
-                เลือกสินค้าที่ต้องการจากหน้า marketplace แล้วค่อยกลับมายืนยันการซื้ออีกครั้ง
+                เลือกสินค้าที่ต้องการจากหน้ารวมซอร์สโค้ดและเทมเพลต แล้วค่อยกลับมายืนยันการซื้ออีกครั้ง
               </Typography>
             </Box>
-            <Button variant="contained" component={RouterLink} to="/">
+            <Button variant="contained" component={RouterLink} to="/catalog">
               กลับไปเลือกซื้อ
             </Button>
           </Stack>
@@ -470,8 +706,7 @@ export const CheckoutPage = () => {
           mb: 4,
           p: { xs: 3, md: 4.5 },
           borderRadius: uiRadius.xl,
-          background:
-            'linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(245, 245, 248, 0.78) 100%)',
+          background: softAccentBackground,
         }}
       >
         <Stack spacing={2.25}>
@@ -694,6 +929,246 @@ export const CheckoutPage = () => {
                     )
                   })}
                 </Stack>
+
+                <Paper
+                  sx={{
+                    ...metricSurfaceSx,
+                    p: { xs: 2, md: 2.25 },
+                    borderRadius: uiRadius.lg,
+                    backgroundColor: 'rgba(255, 255, 255, 0.52)',
+                  }}
+                >
+                  <Stack spacing={2.25}>
+                    <Box>
+                      <Typography variant="h6">รายละเอียดการชำระเงิน</Typography>
+                      <Typography color="text.secondary">
+                        ข้อมูลด้านล่างจะเปลี่ยนตามช่องทางที่คุณเลือกเพื่อให้กรอกหรือโอนเงินได้ต่อทันที
+                      </Typography>
+                    </Box>
+
+                    {form.paymentMethod === 'promptpay' ? (
+                      <Stack spacing={2.25}>
+                        <Stack
+                          direction={{ xs: 'column', md: 'row' }}
+                          spacing={2}
+                          sx={{ alignItems: { xs: 'stretch', md: 'center' } }}
+                        >
+                          <Paper
+                            sx={{
+                              width: { xs: '100%', md: 220 },
+                              minHeight: 220,
+                              flexShrink: 0,
+                              borderRadius: uiRadius.lg,
+                              background: accentGradientDark,
+                              color: 'common.white',
+                              display: 'grid',
+                              placeItems: 'center',
+                              p: 2,
+                            }}
+                          >
+                            <Stack spacing={1.25} sx={{ alignItems: 'center', textAlign: 'center' }}>
+                              <QrCode2RoundedIcon sx={{ fontSize: 78 }} />
+                              <Typography variant="h6">QR พร้อมเพย์</Typography>
+                              <Typography sx={{ color: 'rgba(255, 255, 255, 0.72)' }}>
+                                ชำระ {formatCurrency(cartTotal)}
+                              </Typography>
+                            </Stack>
+                          </Paper>
+
+                          <Grid container spacing={1.5} sx={{ flex: 1 }}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                              <PaymentDetailInfoCard
+                                label="ชื่อบัญชี"
+                                value={mockPromptPayAccount.accountName}
+                              />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                              <PaymentDetailInfoCard
+                                label="PromptPay ID"
+                                value={mockPromptPayAccount.promptPayId}
+                              />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                              <PaymentDetailInfoCard
+                                label="ยอดที่ต้องชำระ"
+                                value={formatCurrency(cartTotal)}
+                              />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                              <PaymentDetailInfoCard
+                                label="รหัสอ้างอิง"
+                                value={promptPayReference}
+                              />
+                            </Grid>
+                          </Grid>
+                        </Stack>
+
+                        <Typography color="text.secondary">
+                          ระบบทดลองจะแสดง QR พร้อมเพย์แบบตัวอย่างไว้ก่อน และเมื่อเชื่อม payment gateway
+                          จริงจะสร้าง QR ตามยอดคำสั่งซื้อให้อัตโนมัติ
+                        </Typography>
+                      </Stack>
+                    ) : null}
+
+                    {form.paymentMethod === 'card' ? (
+                      <Stack spacing={2.25}>
+                        <Paper
+                          sx={{
+                            p: 2.5,
+                            borderRadius: uiRadius.lg,
+                            background: accentGradientDark,
+                            color: 'common.white',
+                          }}
+                        >
+                          <Stack spacing={3.5}>
+                            <Typography sx={{ color: 'rgba(255, 255, 255, 0.72)' }}>
+                              บัตรเครดิต / เดบิต
+                            </Typography>
+                            <Typography variant="h4" sx={{ letterSpacing: '0.08em' }}>
+                              {maskCardNumber(form.cardNumber)}
+                            </Typography>
+                            <Stack direction="row" spacing={2} sx={{ justifyContent: 'space-between' }}>
+                              <Box>
+                                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.66)' }}>
+                                  ชื่อบนบัตร
+                                </Typography>
+                                <Typography variant="h6" sx={{ mt: 0.4 }}>
+                                  {form.cardHolderName.trim().toUpperCase() || 'CARDHOLDER NAME'}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ textAlign: 'right' }}>
+                                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.66)' }}>
+                                  วันหมดอายุ
+                                </Typography>
+                                <Typography variant="h6" sx={{ mt: 0.4 }}>
+                                  {form.cardExpiry || 'MM/YY'}
+                                </Typography>
+                              </Box>
+                            </Stack>
+                          </Stack>
+                        </Paper>
+
+                        <Grid container spacing={2}>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <TextField
+                              fullWidth
+                              label="ชื่อบนบัตร"
+                              value={form.cardHolderName}
+                              onChange={(event) =>
+                                handleFieldChange('cardHolderName', event.target.value)
+                              }
+                              placeholder="เช่น PACHARA AMORN"
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <TextField
+                              fullWidth
+                              label="หมายเลขบัตร"
+                              value={form.cardNumber}
+                              onChange={(event) =>
+                                handleFieldChange(
+                                  'cardNumber',
+                                  formatCardNumberInput(event.target.value),
+                                )
+                              }
+                              placeholder="1234 5678 9012 3456"
+                              slotProps={{
+                                htmlInput: {
+                                  inputMode: 'numeric',
+                                },
+                              }}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <TextField
+                              fullWidth
+                              label="วันหมดอายุ"
+                              value={form.cardExpiry}
+                              onChange={(event) =>
+                                handleFieldChange(
+                                  'cardExpiry',
+                                  formatCardExpiryInput(event.target.value),
+                                )
+                              }
+                              placeholder="MM/YY"
+                              slotProps={{
+                                htmlInput: {
+                                  inputMode: 'numeric',
+                                },
+                              }}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <TextField
+                              fullWidth
+                              label="CVC"
+                              value={form.cardCvc}
+                              onChange={(event) =>
+                                handleFieldChange('cardCvc', formatCardCvcInput(event.target.value))
+                              }
+                              placeholder="123"
+                              slotProps={{
+                                htmlInput: {
+                                  inputMode: 'numeric',
+                                },
+                              }}
+                            />
+                          </Grid>
+                        </Grid>
+
+                        <Typography color="text.secondary">
+                          สำหรับระบบทดลองนี้จะใช้ฟอร์มบัตรแบบจำลองก่อน และเมื่อเชื่อม payment gateway
+                          จริงจะเปลี่ยนไปใช้ tokenized card flow แทน
+                        </Typography>
+                      </Stack>
+                    ) : null}
+
+                    {form.paymentMethod === 'bank-transfer' ? (
+                      <Stack spacing={2.25}>
+                        <Grid container spacing={1.5}>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <PaymentDetailInfoCard
+                              label="ธนาคารรับโอน"
+                              value={mockBankTransferAccount.bankName}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <PaymentDetailInfoCard
+                              label="ชื่อบัญชี"
+                              value={mockBankTransferAccount.accountName}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12 }}>
+                            <PaymentDetailInfoCard
+                              label="เลขบัญชีธนาคาร"
+                              value={mockBankTransferAccount.accountNumber}
+                            />
+                          </Grid>
+                        </Grid>
+
+                        <TextField
+                          fullWidth
+                          label="เลขอ้างอิงการโอนหรือชื่อผู้โอน"
+                          value={form.bankTransferReference}
+                          onChange={(event) =>
+                            handleFieldChange('bankTransferReference', event.target.value)
+                          }
+                          placeholder="เช่น TRX240416001 หรือชื่อบัญชีที่ใช้โอน"
+                        />
+
+                        <PaymentSlipUploadCard
+                          fileName={form.bankTransferSlipName}
+                          imageUrl={form.bankTransferSlipUrl}
+                          onSelect={handleBankTransferSlipSelect}
+                        />
+
+                        <Typography color="text.secondary">
+                          หลังจากโอนเงินแล้วให้กรอกเลขอ้างอิงและแนบสลิปไว้ในหน้านี้ก่อนกดยืนยันคำสั่งซื้อ
+                        </Typography>
+                      </Stack>
+                    ) : null}
+                  </Stack>
+                </Paper>
               </Stack>
             </Paper>
           </Stack>

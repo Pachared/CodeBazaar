@@ -7,6 +7,9 @@ export type AuthUserRole = 'buyer' | 'seller'
 export interface AuthProfileFields {
   phoneNumber: string
   storeName: string
+  savedCardHolderName: string
+  savedCardNumber: string
+  savedCardExpiry: string
   bankName: string
   bankAccountNumber: string
   bankBookImageName: string

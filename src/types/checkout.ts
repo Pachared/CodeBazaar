@@ -4,6 +4,32 @@ export type CheckoutPaymentMethod = 'promptpay' | 'card' | 'bank-transfer'
 
 export type CheckoutLineItem = CartItem
 
+export interface PromptPayPaymentDetails {
+  accountName: string
+  promptPayId: string
+  referenceCode: string
+}
+
+export interface CardPaymentDetails {
+  cardHolderName: string
+  cardNumberMasked: string
+  expiry: string
+}
+
+export interface BankTransferPaymentDetails {
+  bankName: string
+  accountName: string
+  accountNumber: string
+  transferReference: string
+  slipImageName: string
+}
+
+export interface CheckoutPaymentDetails {
+  promptpay?: PromptPayPaymentDetails
+  card?: CardPaymentDetails
+  bankTransfer?: BankTransferPaymentDetails
+}
+
 export interface CheckoutSubmitInput {
   customerName: string
   customerEmail: string
@@ -17,6 +43,7 @@ export interface CheckoutSubmitInput {
   subtotal: number
   total: number
   items: CheckoutLineItem[]
+  paymentDetails: CheckoutPaymentDetails
 }
 
 export interface CheckoutSubmitResponse {

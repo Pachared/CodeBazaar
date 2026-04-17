@@ -17,6 +17,7 @@ export interface Product {
   versionLabel: string
   fileFormatLabel: string
   authorName: string
+  authorSlug: string
   updatedAt: string
   updatedDaysAgo: number
   delivery: string
@@ -40,12 +41,6 @@ export interface MarketplaceFilters {
   stacks: string[]
 }
 
-export interface ProjectInsight {
-  label: string
-  value: string
-  description: string
-}
-
 export interface SellerFeature {
   title: string
   description: string
@@ -66,4 +61,17 @@ export interface SellerCatalogType {
 export interface SellerStep {
   title: string
   description: string
+}
+
+export interface MarketplaceSeller {
+  slug: string
+  name: string
+  summary: string
+  productCount: number
+  totalSales: number
+  startingPrice: number
+  verifiedCount: number
+  categories: string[]
+  stacks: string[]
+  latestUpdateDaysAgo: number
 }
