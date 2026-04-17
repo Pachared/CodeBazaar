@@ -3,8 +3,15 @@ import { getGoogleClientId } from '@/utils/googleClientId'
 
 const GOOGLE_GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client'
 const GOOGLE_AUTH_SCOPE = 'openid email profile'
+const GOOGLE_USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 let googleScriptPromise: Promise<void> | null = null
+
+interface GoogleUserInfoResponse {
+  sub?: string
+  email?: string
+  name?: string
+}
 
 const createGoogleAuthErrorMessage = (type?: string) => {
   switch (type) {
@@ -102,5 +109,29 @@ const requestGoogleAccessToken = async (intent: BuyerAuthIntent) => {
 export const googleIdentityService = {
   async requestBuyerAccessToken(intent: BuyerAuthIntent): Promise<string> {
     return requestGoogleAccessToken(intent)
+  },
+
+  async requestBuyerProfile(accessToken: string): Promise<Required<GoogleUserInfoResponse>> {
+    const response = await fetch(GOOGLE_USERINFO_ENDPOINT, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('ไม่สามารถดึงข้อมูลบัญชี Google ที่ยืนยันตัวตนแล้วได้')
+    }
+
+    const data = (await response.json()) as GoogleUserInfoResponse
+
+    if (!data.sub || !data.email) {
+      throw new Error('Google ไม่ได้ส่งข้อมูลบัญชีที่จำเป็นกลับมาให้ครบ')
+    }
+
+    return {
+      sub: data.sub,
+      email: data.email,
+      name: data.name || data.email,
+    }
   },
 }

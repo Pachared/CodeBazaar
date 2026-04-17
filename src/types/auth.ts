@@ -3,7 +3,7 @@ export type BuyerAuthIntent = 'login' | 'register'
 export type AuthDialogMode = 'buyer-login' | 'buyer-register' | 'seller-register'
 
 export type AuthUserRole = 'buyer' | 'seller'
-export type AuthProvider = 'google' | 'github'
+export type AuthProvider = 'google' | 'github' | 'guest'
 
 export interface AuthProfileFields {
   phoneNumber: string
@@ -27,7 +27,12 @@ export interface AuthSessionUser extends AuthProfileFields {
   email: string
   role: AuthUserRole
   provider: AuthProvider
-  isMock: boolean
+}
+
+export interface StoredAuthSession {
+  user: AuthSessionUser
+  sessionToken: string
+  sessionExpiresAt: string
 }
 
 export type AuthProfileUpdate = Partial<Pick<AuthSessionUser, 'name'> & AuthProfileFields>
@@ -37,4 +42,6 @@ export interface AuthActionResponse {
   description: string
   redirectUrl?: string
   session?: AuthSessionUser
+  sessionToken?: string
+  sessionExpiresAt?: string
 }

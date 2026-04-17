@@ -4,7 +4,11 @@ import type { AuthProfileUpdate, AuthSessionUser } from '@/types/auth'
 export interface AuthContextValue {
   user: AuthSessionUser | null
   isAuthenticated: boolean
-  signIn: (session: AuthSessionUser) => void
+  signIn: (
+    session: AuthSessionUser,
+    sessionToken?: string,
+    sessionExpiresAt?: string,
+  ) => void
   updateProfile: (profile: AuthProfileUpdate) => Promise<AuthSessionUser | null>
   signOut: () => void
 }

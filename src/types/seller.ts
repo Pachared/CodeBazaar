@@ -1,9 +1,6 @@
 export type SellerAssetType = 'source-code' | 'template' | 'component-kit'
 export type SellerListingMode = 'draft' | 'publish'
-export type SellerDeliveryMethod =
-  | 'release-binary'
-  | 'github-private-repo'
-  | 'source-package-upload'
+export type SellerDeliveryMethod = 'release-binary' | 'source-package-upload'
 
 export interface SellerListingInput {
   assetType: SellerAssetType
@@ -25,17 +22,6 @@ export interface SellerListingInput {
   packageFileName: string
   coverFileName: string
   docsFileName: string
-  githubRepoUrl: string
-  githubReleaseTag: string
-  githubAccessNote: string
-  storageProvider: 'cloudflare-r2'
-  storageVisibility: 'private'
-  downloadAccess: 'signed-url'
-  signedUrlTtlMinutes: number
-  auditLoggingEnabled: boolean
-  sha256Enabled: boolean
-  opaqueStorageKeyEnabled: boolean
-  sellerPolicyAccepted: boolean
 }
 
 export interface SellerListingResponse {

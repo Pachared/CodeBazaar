@@ -1,6 +1,6 @@
 import axios, { AxiosHeaders } from 'axios'
 import { env } from '@/config/env'
-import { readStoredAuthSession } from '@/utils/authSession'
+import { clearAuthSession, readStoredAuthSession } from '@/utils/authSession'
 import { getClientSessionKey } from '@/utils/clientSession'
 
 export const apiClient = axios.create({
@@ -26,30 +26,20 @@ const resolveRequestPath = (url?: string, baseURL?: string) => {
   }
 }
 
-const shouldAttachCurrentUserHeaders = (path: string) =>
-  path.startsWith('/me/') || path === '/checkout/orders' || path.startsWith('/seller/')
-
 apiClient.interceptors.request.use((config) => {
   const session = readStoredAuthSession()
   const headers = AxiosHeaders.from(config.headers)
   const requestPath = resolveRequestPath(config.url, config.baseURL)
 
+  headers.delete('Authorization')
   headers.delete('X-Session-Key')
-  headers.delete('X-User-ID')
-  headers.delete('X-User-Email')
 
   if (requestPath === '/cookie-consent' || requestPath === '/me/cookie-consent') {
     headers.set('X-Session-Key', getClientSessionKey())
   }
 
-  if (shouldAttachCurrentUserHeaders(requestPath)) {
-    if (session?.id) {
-      headers.set('X-User-ID', session.id)
-    }
-
-    if (session?.email) {
-      headers.set('X-User-Email', session.email)
-    }
+  if (session?.sessionToken) {
+    headers.set('Authorization', `Bearer ${session.sessionToken}`)
   }
 
   config.headers = headers
@@ -61,6 +51,10 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        clearAuthSession()
+      }
+
       const apiMessage =
         typeof error.response?.data === 'object' && error.response?.data !== null
           ? Reflect.get(error.response.data, 'message')

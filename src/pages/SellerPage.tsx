@@ -1,6 +1,5 @@
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
-import GitHubIcon from '@mui/icons-material/GitHub'
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import {
   Box,
@@ -16,6 +15,7 @@ import type { ReactNode } from 'react'
 import { Link as RouterLink, useOutletContext } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
 import { SectionBadge } from '@/components/common/SectionBadge'
+import { codeBazaarApiCompatibility } from '@/config/backendCompatibility'
 import {
   sellerDeliveryMethodOptions,
   sellerCatalogTypes,
@@ -157,6 +157,8 @@ export const SellerPage = () => {
   const totalSectionCount = sellerOnboardingSections.length
   const allSectionsAccepted = isSeller || acceptedSectionCount >= totalSectionCount
   const activeSectionIndex = isSeller || allSectionsAccepted ? -1 : acceptedSectionCount
+  const canOpenSellerAccount =
+    allSectionsAccepted && codeBazaarApiCompatibility.realSellerOnboarding
 
   useEffect(() => {
     if (activeSectionIndex < 0) {
@@ -228,7 +230,7 @@ export const SellerPage = () => {
               เปิดร้านเพื่อขายโปรเจกต์ เทมเพลต และชุดไฟล์สำหรับนักพัฒนาในหน้าที่จัดการง่ายและพร้อมต่อยอด
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 760, fontWeight: 500 }}>
-              หากต้องการเพิ่มสินค้าใหม่หรือเริ่มลงรายการขายในระบบ ให้เชื่อม GitHub เพื่อเปิดบัญชีผู้ขายก่อน
+              หากต้องการเพิ่มสินค้าใหม่หรือเริ่มลงรายการขายในระบบ ให้เปิดสิทธิ์ผู้ขายให้บัญชีนี้ก่อน
               จากนั้นจึงกดปุ่ม
               {' '}
               ลงขายสินค้า
@@ -255,12 +257,12 @@ export const SellerPage = () => {
             ) : (
               <Button
                 variant="contained"
-                startIcon={<GitHubIcon />}
-                disabled={!allSectionsAccepted}
+                startIcon={<StorefrontRoundedIcon />}
+                disabled={!canOpenSellerAccount}
                 onClick={() => openAuthDialog('seller-register')}
                 sx={sellerPrimaryActionSx}
               >
-                เปิดบัญชีผู้ขายด้วย GitHub
+                เปิดบัญชีผู้ขาย
               </Button>
             )}
             <Button
@@ -276,7 +278,9 @@ export const SellerPage = () => {
           {!isSeller ? (
             <Typography color="text.secondary" sx={{ fontWeight: 600 }}>
               {allSectionsAccepted
-                ? 'อ่านและยอมรับครบทุกกล่องแล้ว ตอนนี้คุณสามารถเปิดบัญชีผู้ขายด้วย GitHub ได้'
+                ? codeBazaarApiCompatibility.realSellerOnboarding
+                  ? 'อ่านและยอมรับครบทุกกล่องแล้ว ตอนนี้คุณสามารถเปิดบัญชีผู้ขายได้'
+                  : 'อ่านและยอมรับครบทุกกล่องแล้ว แต่สภาพแวดล้อมนี้ยังไม่เปิด onboarding ผู้ขาย'
                 : `กรุณาอ่านรายละเอียดและกดยอมรับทีละกล่องให้ครบก่อนเปิดบัญชีผู้ขาย (${acceptedSectionCount}/${totalSectionCount})`}
             </Typography>
           ) : null}

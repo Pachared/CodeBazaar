@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react'
 import { DownloadLibraryContext } from '@/app/providers/download-library-context'
 import { useAuth } from '@/app/providers/useAuth'
 import { useNotification } from '@/app/providers/useNotification'
+import { codeBazaarApiCompatibility } from '@/config/backendCompatibility'
 import { hasRemoteApi } from '@/config/env'
 import { downloadsService } from '@/services/api/downloads.service'
 import type { CompletedDownloadOrderInput, DownloadLibraryItem } from '@/types/downloads'
@@ -14,7 +15,8 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
   const [loadedUserKey, setLoadedUserKey] = useState<string | null>(null)
 
   const userKey = user?.id ?? null
-  const shouldUseRemoteLibrary = hasRemoteApi && Boolean(userKey)
+  const shouldUseRemoteLibrary =
+    hasRemoteApi && Boolean(userKey) && codeBazaarApiCompatibility.realDownloadLibrary
   const items = useMemo(
     () =>
       userKey && loadedUserKey === userKey
@@ -63,8 +65,9 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
     if (!shouldUseRemoteLibrary) {
       notify({
         severity: 'error',
-        title: 'ยังไม่พร้อมดาวน์โหลด',
-        message: 'ระบบนี้ต้องเชื่อมต่อ API จริงก่อนจึงจะตรวจสิทธิ์ดาวน์โหลดได้',
+        title: 'คลังดาวโหลดยังไม่พร้อมใช้งาน',
+        message:
+          'ยังไม่สามารถยืนยันสิทธิ์ดาวน์โหลดของบัญชีนี้ได้ ลองเข้าสู่ระบบใหม่แล้วตรวจสอบว่ารายการซื้อถูกบันทึกเรียบร้อยแล้ว',
       })
       return
     }

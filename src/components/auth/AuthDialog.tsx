@@ -1,4 +1,3 @@
-import GitHubIcon from '@mui/icons-material/GitHub'
 import GoogleIcon from '@mui/icons-material/Google'
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import {
@@ -57,16 +56,17 @@ const dialogCopy: Record<
     loadingLabel: 'กำลังเตรียมการสมัคร...',
   },
   'seller-register': {
-    badge: 'เปิดบัญชีผู้ขายด้วย GitHub',
+    badge: 'เปิดใช้งานบัญชีผู้ขาย',
     title: 'สมัครผู้ขาย',
-    helperText: 'ใช้บัญชี GitHub เพื่อเริ่มต้นเปิดบัญชีสำหรับลงขายซอร์สโค้ดและเทมเพลต',
-    actionLabel: 'เชื่อม GitHub เพื่อเปิดบัญชีผู้ขาย',
-    loadingLabel: 'กำลังเชื่อม GitHub...',
+    helperText:
+      'ยืนยันตัวตนด้วย Google แล้วอัปเกรดบัญชีนี้เป็นผู้ขาย เพื่อเปิดร้านและเริ่มลงขายสินค้าได้ทันที',
+    actionLabel: 'ยืนยันและเปิดบัญชีผู้ขาย',
+    loadingLabel: 'กำลังเปิดบัญชีผู้ขาย...',
   },
 }
 
 export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
-  const { signIn } = useAuth()
+  const { signIn, user } = useAuth()
   const { notify } = useNotification()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [googleClientId, setGoogleClientId] = useState(() => getGoogleClientId())
@@ -81,9 +81,10 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
   }
 
   const copy = dialogCopy[mode]
-  const actionIcon = mode === 'seller-register' ? <GitHubIcon /> : <GoogleIcon />
-  const requiresGoogleClientId = mode !== 'seller-register'
+  const actionIcon = mode === 'seller-register' ? <StorefrontRoundedIcon /> : <GoogleIcon />
+  const requiresGoogleClientId = mode !== 'seller-register' || !user
   const isGoogleAuthReady = !requiresGoogleClientId || Boolean(googleClientId)
+  const { actionLabel, loadingLabel } = copy
 
   const handleSetGoogleClientId = () => {
     const nextValue = window.prompt('วาง Google Client ID สำหรับโปรเจกต์นี้', googleClientId)
@@ -107,13 +108,38 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      const nextResponse =
-        mode === 'seller-register'
-          ? await sellerService.openSellerAccount()
-          : await authService.startGoogleAuth(mode === 'buyer-login' ? 'login' : 'register')
+      if (mode === 'seller-register') {
+        if (!user) {
+          const authResponse = await authService.startGoogleAuth('register')
 
-      if (nextResponse.session) {
-        signIn(nextResponse.session)
+          if (!authResponse.session || !authResponse.sessionToken || !authResponse.sessionExpiresAt) {
+            throw new Error('ไม่พบ session จาก Google login')
+          }
+
+          signIn(authResponse.session, authResponse.sessionToken, authResponse.sessionExpiresAt)
+        }
+
+        const sellerResponse = await sellerService.openSellerAccount()
+
+        if (sellerResponse.session) {
+          signIn(sellerResponse.session)
+        }
+
+        notify({
+          severity: 'success',
+          title: sellerResponse.title,
+          message: sellerResponse.description,
+        })
+        onClose()
+        return
+      }
+
+      const nextResponse = await authService.startGoogleAuth(
+        mode === 'buyer-login' ? 'login' : 'register',
+      )
+
+      if (nextResponse.session && nextResponse.sessionToken && nextResponse.sessionExpiresAt) {
+        signIn(nextResponse.session, nextResponse.sessionToken, nextResponse.sessionExpiresAt)
         notify({
           severity: 'success',
           title: nextResponse.title,
@@ -277,7 +303,7 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
                   boxShadow: '0 18px 30px rgba(17, 17, 17, 0.16)',
                 }}
               >
-                {isSubmitting ? copy.loadingLabel : copy.actionLabel}
+                {isSubmitting ? loadingLabel : actionLabel}
               </Button>
             </Stack>
           </Box>

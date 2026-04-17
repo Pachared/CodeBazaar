@@ -1,24 +1,42 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { PropsWithChildren } from 'react'
 import { AuthContext } from '@/app/providers/auth-context'
+import { codeBazaarApiCompatibility } from '@/config/backendCompatibility'
 import { hasRemoteApi } from '@/config/env'
 import { profileService } from '@/services/api/profile.service'
-import type { AuthProfileUpdate, AuthSessionUser } from '@/types/auth'
+import type { AuthProfileUpdate, AuthSessionUser, StoredAuthSession } from '@/types/auth'
 import {
   clearAuthSession,
-  normalizeAuthSession,
+  normalizeAuthSessionUser,
+  normalizeStoredAuthSession,
   readStoredAuthSession,
   saveAuthSession,
 } from '@/utils/authSession'
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
-  const [user, setUser] = useState<AuthSessionUser | null>(() => {
-    const storedSession = readStoredAuthSession()
-    return storedSession?.isMock ? null : storedSession
-  })
+  const canUseRemoteProfileSync =
+    hasRemoteApi && codeBazaarApiCompatibility.realUserProfileSync
+  const [storedSession, setStoredSession] = useState<StoredAuthSession | null>(() =>
+    {
+      const nextSession = readStoredAuthSession()
 
-  const commitSession = useCallback((session: AuthSessionUser | null) => {
-    setUser(session)
+      if (!nextSession) {
+        return null
+      }
+
+      if (nextSession.user.role === 'seller' && !codeBazaarApiCompatibility.realSellerOnboarding) {
+        clearAuthSession()
+        return null
+      }
+
+      return nextSession
+    },
+  )
+
+  const user = storedSession?.user ?? null
+
+  const commitSession = useCallback((session: StoredAuthSession | null) => {
+    setStoredSession(session)
 
     if (session) {
       saveAuthSession(session)
@@ -28,10 +46,28 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     clearAuthSession()
   }, [])
 
-  const signIn = (session: AuthSessionUser) => {
-    const normalizedSession = normalizeAuthSession(session)
+  const signIn = (
+    session: AuthSessionUser,
+    sessionToken?: string,
+    sessionExpiresAt?: string,
+  ) => {
+    const currentStoredSession = storedSession ?? readStoredAuthSession()
+    const normalizedUser = normalizeAuthSessionUser(session)
 
-    if (!normalizedSession || normalizedSession.isMock) {
+    if (
+      !normalizedUser ||
+      (normalizedUser.role === 'seller' && !codeBazaarApiCompatibility.realSellerOnboarding)
+    ) {
+      return
+    }
+
+    const normalizedSession = normalizeStoredAuthSession({
+      user: normalizedUser,
+      sessionToken: sessionToken ?? currentStoredSession?.sessionToken,
+      sessionExpiresAt: sessionExpiresAt ?? currentStoredSession?.sessionExpiresAt,
+    })
+
+    if (!normalizedSession) {
       return
     }
 
@@ -39,11 +75,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }
 
   useEffect(() => {
-    if (!hasRemoteApi || !user?.id) {
+    if (!canUseRemoteProfileSync || !storedSession?.sessionToken || !storedSession.user.id) {
       return
     }
 
     const controller = new AbortController()
+    const currentSessionToken = storedSession.sessionToken
+    const currentSessionExpiresAt = storedSession.sessionExpiresAt
 
     void profileService
       .getProfile(controller.signal)
@@ -52,33 +90,57 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           return
         }
 
-        const normalizedSession = normalizeAuthSession(remoteUser)
-        if (!normalizedSession) {
+        const normalizedUser = normalizeAuthSessionUser(remoteUser)
+        if (!normalizedUser) {
           return
         }
 
-        commitSession(normalizedSession)
+        commitSession({
+          sessionToken: currentSessionToken,
+          sessionExpiresAt: currentSessionExpiresAt,
+          user: normalizedUser,
+        })
       })
       .catch(() => {
         // Keep the locally stored session if the profile sync request fails.
       })
 
     return () => controller.abort()
-  }, [commitSession, user?.id])
+  }, [
+    canUseRemoteProfileSync,
+    commitSession,
+    storedSession?.sessionExpiresAt,
+    storedSession?.sessionToken,
+    storedSession?.user.id,
+  ])
 
   const updateProfile = async (profile: AuthProfileUpdate) => {
     if (!user) {
       return null
     }
 
+    if (!canUseRemoteProfileSync) {
+      const nextUser = normalizeAuthSessionUser({
+        ...user,
+        ...profile,
+      })
+
+      if (!nextUser) {
+        return null
+      }
+
+      signIn(nextUser)
+      return nextUser
+    }
+
     const nextUser = await profileService.updateProfile(profile)
-    const normalizedSession = normalizeAuthSession(nextUser)
+    const normalizedSession = normalizeAuthSessionUser(nextUser)
 
     if (!normalizedSession) {
       return null
     }
 
-    commitSession(normalizedSession)
+    signIn(normalizedSession)
     return normalizedSession
   }
 
@@ -90,7 +152,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: Boolean(user),
+        isAuthenticated: Boolean(storedSession?.sessionToken && user),
         signIn,
         updateProfile,
         signOut,

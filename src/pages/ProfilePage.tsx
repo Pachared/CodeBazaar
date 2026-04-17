@@ -122,7 +122,7 @@ const AccountMetaRow = ({ label, value }: { label: string; value: string }) => (
 )
 
 const formatProviderLabel = (provider: AuthSessionUser['provider']) =>
-  provider === 'github' ? 'GitHub' : 'Google'
+  provider === 'github' ? 'GitHub' : provider === 'guest' ? 'Guest' : 'Google'
 
 interface SellerDocumentUploadCardProps {
   title: string
@@ -342,7 +342,10 @@ const AuthenticatedProfileContent = ({
               <Stack spacing={1.2}>
                 <AccountMetaRow label="สิทธิ์การใช้งาน" value={accountTypeLabel} />
                 <AccountMetaRow label="ผู้ให้บริการ" value={formatProviderLabel(user.provider)} />
-                <AccountMetaRow label="สถานะข้อมูล" value="พร้อมซิงก์กับระบบ" />
+                <AccountMetaRow
+                  label="สถานะข้อมูล"
+                  value="พร้อมซิงก์กับระบบ"
+                />
                 <AccountMetaRow label="อีเมลบัญชี" value={user.email} />
                 <AccountMetaRow label="เบอร์โทร" value={form.phoneNumber || 'ยังไม่ระบุ'} />
                 <AccountMetaRow

@@ -1,19 +1,48 @@
-import type { AuthSessionUser } from '@/types/auth'
+import type { AuthSessionUser, StoredAuthSession } from '@/types/auth'
 import { createDefaultProfileFields } from '@/utils/authProfileDefaults'
 
 const AUTH_SESSION_STORAGE_KEY = 'codebazaar_auth_session'
 
-export const normalizeAuthSession = (session: Partial<AuthSessionUser> | null) => {
+const normalizeSessionExpiry = (value: string | undefined) => {
+  if (!value?.trim()) {
+    return null
+  }
+
+  const expiresAt = new Date(value)
+
+  if (Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) {
+    return null
+  }
+
+  return expiresAt.toISOString()
+}
+
+export const normalizeAuthSessionUser = (session: Partial<AuthSessionUser> | null) => {
   if (!session?.id || !session.name || !session.email || !session.role) {
     return null
   }
 
   return {
     ...createDefaultProfileFields(session.role),
-    provider: session.provider ?? (session.role === 'seller' ? 'github' : 'google'),
-    isMock: session.isMock ?? false,
+    provider: session.provider ?? 'google',
     ...session,
   } as AuthSessionUser
+}
+
+export const normalizeStoredAuthSession = (session: Partial<StoredAuthSession> | null) => {
+  const user = normalizeAuthSessionUser(session?.user ?? null)
+  const sessionToken = session?.sessionToken?.trim()
+  const sessionExpiresAt = normalizeSessionExpiry(session?.sessionExpiresAt)
+
+  if (!user || !sessionToken || !sessionExpiresAt) {
+    return null
+  }
+
+  return {
+    user,
+    sessionToken,
+    sessionExpiresAt,
+  } satisfies StoredAuthSession
 }
 
 export const readStoredAuthSession = () => {
@@ -28,18 +57,27 @@ export const readStoredAuthSession = () => {
   }
 
   try {
-    return normalizeAuthSession(JSON.parse(rawValue) as Partial<AuthSessionUser>)
+    const normalizedSession = normalizeStoredAuthSession(
+      JSON.parse(rawValue) as Partial<StoredAuthSession>,
+    )
+
+    if (!normalizedSession) {
+      clearAuthSession()
+    }
+
+    return normalizedSession
   } catch {
+    clearAuthSession()
     return null
   }
 }
 
-export const saveAuthSession = (session: AuthSessionUser) => {
+export const saveAuthSession = (session: StoredAuthSession) => {
   if (typeof window === 'undefined') {
     return
   }
 
-  const normalizedSession = normalizeAuthSession(session)
+  const normalizedSession = normalizeStoredAuthSession(session)
 
   if (!normalizedSession) {
     return

@@ -1,5 +1,4 @@
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
-import GitHubIcon from '@mui/icons-material/GitHub'
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import {
   Box,
@@ -15,6 +14,7 @@ import { Link as RouterLink, useOutletContext } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
 import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { SectionBadge } from '@/components/common/SectionBadge'
+import { codeBazaarApiCompatibility } from '@/config/backendCompatibility'
 import { useSellerOrders } from '@/hooks/useSellerOrders'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
 import {
@@ -225,13 +225,66 @@ export const SellerOrdersPage = () => {
   const { user, isAuthenticated } = useAuth()
   const { openAuthDialog } = useOutletContext<MainLayoutOutletContext>()
   const isSeller = user?.role === 'seller'
-  const { orders, isLoading, error } = useSellerOrders(isAuthenticated && isSeller)
+  const sellerOrdersAvailable = codeBazaarApiCompatibility.realSellerOrders
+  const { orders, isLoading, error } = useSellerOrders(
+    sellerOrdersAvailable && isAuthenticated && isSeller,
+  )
 
   const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0)
   const uniqueBuyerCount = new Set(orders.map((order) => order.buyerEmail)).size
   const latestOrderDate = orders[0]?.purchasedAt
     ? thaiDateFormatter.format(new Date(orders[0].purchasedAt))
     : 'ยังไม่มีรายการ'
+
+  if (!sellerOrdersAvailable) {
+    return (
+      <Container
+        maxWidth="lg"
+        sx={{
+          display: 'grid',
+          gap: { xs: 3, md: 4 },
+          py: { xs: 5, md: 7 },
+        }}
+      >
+        <Paper
+          sx={{
+            p: { xs: 3, md: 4.5 },
+            borderRadius: uiRadius.xl,
+            background: softAccentBackground,
+          }}
+        >
+          <Stack spacing={2.25}>
+            <SectionBadge label="คำสั่งซื้อของร้าน" />
+            <Typography variant="h2" sx={{ maxWidth: 860 }}>
+              หน้านี้ยังไม่เปิดใช้งานในสภาพแวดล้อมปัจจุบัน
+            </Typography>
+            <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 780, fontWeight: 500 }}>
+              หาก backend ยังไม่ได้เปิดคำสั่งซื้อของร้านสำหรับผู้ขาย คุณสามารถกลับไปจัดการร้าน
+              หรือเปิดดูแคตตาล็อกก่อน แล้วค่อยกลับมาใช้หน้านี้เมื่อระบบพร้อม
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
+              <Button
+                variant="outlined"
+                component={RouterLink}
+                to="/seller"
+                endIcon={<ArrowOutwardRoundedIcon />}
+              >
+                กลับไปศูนย์ผู้ขาย
+              </Button>
+              <Button
+                variant="outlined"
+                component={RouterLink}
+                to="/catalog"
+                endIcon={<ArrowOutwardRoundedIcon />}
+              >
+                ไปหน้ารวมซอร์สโค้ดและเทมเพลต
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
+      </Container>
+    )
+  }
 
   return (
     <Container
@@ -273,15 +326,15 @@ export const SellerOrdersPage = () => {
             <SectionBadge label="ยังไม่เข้าสู่ระบบ" />
             <Typography variant="h4">เข้าสู่ระบบก่อนเพื่อดูคำสั่งซื้อของร้าน</Typography>
             <Typography color="text.secondary">
-              ใช้บัญชี GitHub ของผู้ขายเพื่อเปิดดูรายการคำสั่งซื้อ ยอดขาย และข้อมูลลูกค้าที่ซื้อผลงานของคุณ
+              เข้าสู่ระบบและเปิดสิทธิ์ผู้ขายก่อน เพื่อดูรายการคำสั่งซื้อ ยอดขาย และข้อมูลลูกค้าที่ซื้อผลงานของคุณ
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
               <Button
                 variant="contained"
-                startIcon={<GitHubIcon />}
+                startIcon={<StorefrontRoundedIcon />}
                 onClick={() => openAuthDialog('seller-register')}
               >
-                เปิดบัญชีผู้ขายด้วย GitHub
+                เปิดบัญชีผู้ขาย
               </Button>
               <Button
                 variant="outlined"
@@ -308,15 +361,15 @@ export const SellerOrdersPage = () => {
             <SectionBadge label="สำหรับผู้ขายเท่านั้น" />
             <Typography variant="h4">เปิดบัญชีผู้ขายก่อนเพื่อดูรายการที่ลูกค้าซื้อจากร้านของคุณ</Typography>
             <Typography color="text.secondary">
-              หลังจากเชื่อม GitHub เพื่อเปิดบัญชีผู้ขายแล้ว คุณจะสามารถดูคำสั่งซื้อ ยอดรวมของร้าน และรายการสินค้าที่ถูกซื้อได้จากหน้านี้ทันที
+              หลังจากเปิดสิทธิ์ผู้ขายแล้ว คุณจะสามารถดูคำสั่งซื้อ ยอดรวมของร้าน และรายการสินค้าที่ถูกซื้อได้จากหน้านี้ทันที
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
               <Button
                 variant="contained"
-                startIcon={<GitHubIcon />}
+                startIcon={<StorefrontRoundedIcon />}
                 onClick={() => openAuthDialog('seller-register')}
               >
-                เปิดบัญชีผู้ขายด้วย GitHub
+                เปิดบัญชีผู้ขาย
               </Button>
               <Button
                 variant="outlined"

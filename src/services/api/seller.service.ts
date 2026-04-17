@@ -1,3 +1,4 @@
+import { codeBazaarApiCompatibility } from '@/config/backendCompatibility'
 import { requireRemoteApi } from '@/config/env'
 import type { AuthActionResponse } from '@/types/auth'
 import type {
@@ -35,32 +36,24 @@ interface SellerListingApiPayload {
 
 export const sellerService = {
   async openSellerAccount(): Promise<AuthActionResponse> {
+    if (!codeBazaarApiCompatibility.realSellerOnboarding) {
+      throw new Error('สภาพแวดล้อมนี้ยังไม่เปิด onboarding ผู้ขาย')
+    }
+
     requireRemoteApi('บัญชีผู้ขาย ')
 
-    const { data } = await apiClient.post<AuthActionResponse>('/seller/onboarding/github')
-
-    if (data.session?.isMock) {
-      throw new Error('backend ฝั่งผู้ขายยังไม่เปิดใช้งานแบบจริง จึงยังไม่สามารถเปิดบัญชีผู้ขายได้ในตอนนี้')
-    }
-
-    if (!data.session) {
-      return data
-    }
-
-    return {
-      ...data,
-      session: {
-        ...data.session,
-        role: 'seller',
-        provider: 'github',
-      },
-    }
+    const { data } = await apiClient.post<AuthActionResponse>('/seller/onboarding/google')
+    return data
   },
 
   async submitListing(
     input: SellerListingInput,
     mode: SellerListingMode,
   ): Promise<SellerListingResponse> {
+    if (!codeBazaarApiCompatibility.realSellerListingSubmission) {
+      throw new Error('สภาพแวดล้อมนี้ยังไม่เปิดการส่งรายการขายผ่าน API')
+    }
+
     requireRemoteApi('การลงขายสินค้า ')
 
     const payload: SellerListingApiPayload = {
@@ -82,7 +75,7 @@ export const sellerService = {
       packageFileName: input.packageFileName,
       coverFileName: input.coverFileName,
       docsFileName: input.docsFileName,
-      instantDelivery: input.deliveryMethod !== 'github-private-repo',
+      instantDelivery: true,
       sourceIncluded: input.deliveryMethod === 'source-package-upload',
       documentationIncluded: input.docsFileName.trim().length > 0,
       mode,
@@ -94,6 +87,10 @@ export const sellerService = {
   },
 
   async getSellerOrders(signal?: AbortSignal): Promise<SellerOrder[]> {
+    if (!codeBazaarApiCompatibility.realSellerOrders) {
+      throw new Error('สภาพแวดล้อมนี้ยังไม่เปิดคำสั่งซื้อของร้านสำหรับผู้ขาย')
+    }
+
     requireRemoteApi('คำสั่งซื้อของร้าน ')
 
     const { data } = await apiClient.get<SellerOrder[]>('/seller/orders', { signal })

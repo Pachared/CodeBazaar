@@ -31,6 +31,7 @@ import { useNotification } from '@/app/providers/useNotification'
 import { CartIcon } from '@/components/cart/CartIcon'
 import { IOSSwitch } from '@/components/common/IOSSwitch'
 import { SectionBadge } from '@/components/common/SectionBadge'
+import { codeBazaarApiCompatibility } from '@/config/backendCompatibility'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
 import { checkoutService } from '@/services/api/checkout.service'
 import {
@@ -339,6 +340,7 @@ const CheckoutLineItemCard = ({ item }: { item: CartItem }) => {
 
 const CheckoutSuccessView = ({ order }: { order: CompletedOrderState }) => {
   const paymentMethodLabel = paymentMethodLabelMap[order.response.paymentMethod]
+  const downloadsAvailable = codeBazaarApiCompatibility.realDownloadLibrary
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
@@ -357,6 +359,9 @@ const CheckoutSuccessView = ({ order }: { order: CompletedOrderState }) => {
             </Typography>
             <Typography color="text.secondary" sx={{ mt: 1.25, maxWidth: 620 }}>
               {order.response.description}
+              {!downloadsAvailable
+                ? ' ตอนนี้ไฟล์ดาวน์โหลดยังไม่ถูกส่งมอบผ่าน API จริง จึงยังไม่แสดงในคลังดาวน์โหลดอัตโนมัติ'
+                : ''}
             </Typography>
           </Box>
 
@@ -392,16 +397,24 @@ const CheckoutSuccessView = ({ order }: { order: CompletedOrderState }) => {
           </Grid>
 
           <Stack spacing={1.5}>
-            <Typography variant="h5">รายการที่พร้อมดาวน์โหลด</Typography>
+            <Typography variant="h5">
+              {downloadsAvailable ? 'รายการที่พร้อมดาวน์โหลด' : 'รายการที่สั่งซื้อสำเร็จ'}
+            </Typography>
             {order.items.map((item) => (
               <CheckoutLineItemCard key={item.id} item={item} />
             ))}
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-            <Button variant="contained" component={RouterLink} to="/downloads">
-              ไปหน้าดาวน์โหลด
-            </Button>
+            {downloadsAvailable ? (
+              <Button variant="contained" component={RouterLink} to="/downloads">
+                ไปหน้าดาวน์โหลด
+              </Button>
+            ) : (
+              <Button variant="contained" component={RouterLink} to="/catalog">
+                กลับไปดูรายการขายทั้งหมด
+              </Button>
+            )}
             <Button
               variant="outlined"
               component={RouterLink}
@@ -726,7 +739,7 @@ export const CheckoutPage = () => {
             ยืนยันรายการสั่งซื้อของคุณก่อนชำระเงิน
           </Typography>
           <Typography color="text.secondary" sx={{ maxWidth: 700 }}>
-            ตรวจสอบข้อมูลผู้ซื้อ เลือกวิธีชำระเงิน และสรุปรายการซอร์สโค้ดหรือเทมเพลตที่พร้อมดาวน์โหลดทันที
+            ตรวจสอบข้อมูลผู้ซื้อ เลือกวิธีชำระเงิน และสรุปรายการซอร์สโค้ดหรือเทมเพลตก่อนยืนยันคำสั่งซื้อ
           </Typography>
         </Stack>
       </Paper>
@@ -1208,7 +1221,14 @@ export const CheckoutPage = () => {
 
                 <Stack spacing={1.25}>
                   <SummaryRow label="ยอดรวมสินค้า" value={formatCurrency(cartTotal)} />
-                  <SummaryRow label="การจัดส่งไฟล์" value="ดาวน์โหลดได้ทันที" />
+                  <SummaryRow
+                    label="การจัดส่งไฟล์"
+                    value={
+                      codeBazaarApiCompatibility.realDownloadLibrary
+                        ? 'ดาวน์โหลดได้ทันที'
+                        : 'รอระบบส่งมอบไฟล์จาก API'
+                    }
+                  />
                   <SummaryRow
                     label="ช่องทางชำระเงิน"
                     value={paymentMethodLabelMap[form.paymentMethod]}

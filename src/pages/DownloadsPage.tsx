@@ -17,6 +17,7 @@ import { useAuth } from '@/app/providers/useAuth'
 import { useDownloads } from '@/app/providers/useDownloads'
 import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { SectionBadge } from '@/components/common/SectionBadge'
+import { codeBazaarApiCompatibility } from '@/config/backendCompatibility'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
 import {
   accentGradientDark,
@@ -185,6 +186,7 @@ export const DownloadsPage = () => {
   const { user, isAuthenticated } = useAuth()
   const { items, totalSpent, hasLoaded, downloadItem } = useDownloads()
   const { openAuthDialog } = useOutletContext<MainLayoutOutletContext>()
+  const downloadsAvailable = codeBazaarApiCompatibility.realDownloadLibrary
 
   const latestPurchaseDate = items[0]?.purchasedAt
     ? thaiDateFormatter.format(new Date(items[0].purchasedAt))
@@ -210,11 +212,14 @@ export const DownloadsPage = () => {
         <Stack spacing={2.25}>
           <SectionBadge label="คลังดาวน์โหลด" />
           <Typography variant="h2" sx={{ maxWidth: 860 }}>
-            รวมไฟล์สินค้าที่ซื้อแล้วไว้ในหน้าเดียว พร้อมดาวน์โหลดเมื่อไรก็ได้
+            {downloadsAvailable
+              ? 'รวมไฟล์สินค้าที่ซื้อแล้วไว้ในหน้าเดียว พร้อมดาวน์โหลดเมื่อไรก็ได้'
+              : 'ดูสถานะการส่งมอบไฟล์ดาวน์โหลดของรายการที่ซื้อไว้ในหน้าเดียว'}
           </Typography>
           <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 760, fontWeight: 500 }}>
-            หน้านี้ใช้สำหรับผู้ซื้อที่ต้องการกลับมาโหลด source code, template และไฟล์แพ็กเกจที่ซื้อไว้
-            โดยจะผูกกับคำสั่งซื้อของบัญชีนี้และตรวจสิทธิ์จากรายการที่ซื้อก่อนทุกครั้ง
+            {downloadsAvailable
+              ? 'หน้านี้ใช้สำหรับผู้ซื้อที่ต้องการกลับมาโหลด source code, template และไฟล์แพ็กเกจที่ซื้อไว้ โดยจะผูกกับคำสั่งซื้อของบัญชีนี้และตรวจสิทธิ์จากรายการที่ซื้อก่อนทุกครั้ง'
+              : 'หน้านี้ใช้สำหรับตรวจสอบความพร้อมของระบบส่งมอบไฟล์หลังสั่งซื้อ และจะแสดงไฟล์ดาวน์โหลดเมื่อ CodeBazaarApi รองรับการตรวจสิทธิ์และ signed URL สำหรับบัญชีจริง'}
           </Typography>
         </Stack>
       </Paper>
@@ -248,6 +253,41 @@ export const DownloadsPage = () => {
                 endIcon={<ArrowOutwardRoundedIcon />}
               >
                 ไปหน้ารวมซอร์สโค้ดและเทมเพลต
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
+      ) : !downloadsAvailable ? (
+        <Paper
+          sx={{
+            p: { xs: 3, md: 4 },
+            borderRadius: uiRadius.xl,
+            background: softAccentBackgroundMuted,
+          }}
+        >
+          <Stack spacing={2.5} sx={{ alignItems: 'flex-start', maxWidth: 760 }}>
+            <DownloadRoundedIcon sx={{ fontSize: 38, color: 'text.secondary' }} />
+            <Box>
+              <SectionBadge label="คลังดาวโหลดยังไม่เปิดใช้งาน" />
+              <Typography variant="h3" sx={{ mt: 1.5 }}>
+                คลิกดาวน์โหลดสำหรับสภาพแวดล้อมนี้ยังไม่เปิดใช้งาน
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 1.2 }}>
+                หาก backend ยังไม่ได้เปิดคลังดาวน์โหลดสำหรับบัญชีผู้ใช้ในสภาพแวดล้อมนี้
+                ระบบจะซ่อนส่วนนี้ไว้ก่อนเพื่อไม่ให้แสดงข้อมูลที่คลาดเคลื่อน
+              </Typography>
+            </Box>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
+              <Button variant="contained" component={RouterLink} to="/catalog">
+                ไปหน้ารวมซอร์สโค้ดและเทมเพลต
+              </Button>
+              <Button
+                variant="outlined"
+                component={RouterLink}
+                to="/profile"
+                endIcon={<ArrowOutwardRoundedIcon />}
+              >
+                ไปหน้าตั้งค่าโปรไฟล์
               </Button>
             </Stack>
           </Stack>
