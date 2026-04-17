@@ -180,7 +180,7 @@ const DownloadLibraryCard = ({
 
 export const DownloadsPage = () => {
   const { user, isAuthenticated } = useAuth()
-  const { items, totalSpent, downloadItem } = useDownloads()
+  const { items, totalSpent, hasLoaded, downloadItem } = useDownloads()
   const { openAuthDialog } = useOutletContext<MainLayoutOutletContext>()
 
   const latestPurchaseDate = items[0]?.purchasedAt
@@ -211,7 +211,7 @@ export const DownloadsPage = () => {
           </Typography>
           <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 760, fontWeight: 500 }}>
             หน้านี้ใช้สำหรับผู้ซื้อที่ต้องการกลับมาโหลด source code, template และไฟล์แพ็กเกจที่ซื้อไว้
-            โดยจะผูกกับคำสั่งซื้อ mock ในเครื่องก่อน และพร้อมต่อระบบจริงภายหลัง
+            โดยจะผูกกับคำสั่งซื้อของบัญชีนี้และรองรับการกลับมาโหลดซ้ำได้ตลอด
           </Typography>
         </Stack>
       </Paper>
@@ -247,6 +247,22 @@ export const DownloadsPage = () => {
                 ไปหน้ารวมซอร์สโค้ดและเทมเพลต
               </Button>
             </Stack>
+          </Stack>
+        </Paper>
+      ) : !hasLoaded ? (
+        <Paper
+          sx={{
+            p: { xs: 3, md: 4 },
+            borderRadius: uiRadius.xl,
+            background: softAccentBackgroundMuted,
+          }}
+        >
+          <Stack spacing={2.5} sx={{ alignItems: 'flex-start', maxWidth: 720 }}>
+            <SectionBadge label="กำลังโหลดคลังดาวน์โหลด" />
+            <Typography variant="h4">กำลังดึงรายการไฟล์ที่ซื้อไว้จากระบบ</Typography>
+            <Typography color="text.secondary">
+              รอสักครู่ เรากำลังเตรียมรายการดาวน์โหลดล่าสุดของบัญชีนี้ให้พร้อมใช้งาน
+            </Typography>
           </Stack>
         </Paper>
       ) : items.length === 0 ? (

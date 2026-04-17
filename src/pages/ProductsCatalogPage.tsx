@@ -1,11 +1,11 @@
-import { startTransition, useDeferredValue, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { Container, Grid, Paper, Stack, Typography } from '@mui/material'
 import { ProjectsGrid } from '@/components/marketplace/ProjectsGrid'
 import { SearchSidebar } from '@/components/marketplace/SearchSidebar'
 import { SectionBadge } from '@/components/common/SectionBadge'
-import { useFeaturedProducts } from '@/hooks/useFeaturedProducts'
+import { useProductsCatalog } from '@/hooks/useProductsCatalog'
 import { softAccentBackground, uiRadius } from '@/theme/uiTokens'
-import type { MarketplaceFilters, Product } from '@/types/marketplace'
+import type { MarketplaceFilters } from '@/types/marketplace'
 
 const defaultFilters: MarketplaceFilters = {
   query: '',
@@ -17,48 +17,17 @@ const defaultFilters: MarketplaceFilters = {
   stacks: [],
 }
 
-const matchesPriceRange = (price: number, range: string) => {
-  if (range === 'under-1500') {
-    return price < 1500
-  }
-
-  if (range === '1500-2500') {
-    return price >= 1500 && price <= 2500
-  }
-
-  if (range === 'over-2500') {
-    return price > 2500
-  }
-
-  return true
-}
-
-const sortProducts = (items: Product[], sort: string) => {
-  if (sort === 'latest') {
-    return [...items].sort((left, right) => left.updatedDaysAgo - right.updatedDaysAgo)
-  }
-
-  if (sort === 'price-asc') {
-    return [...items].sort((left, right) => left.price - right.price)
-  }
-
-  if (sort === 'price-desc') {
-    return [...items].sort((left, right) => right.price - left.price)
-  }
-
-  return [...items].sort((left, right) => {
-    if (left.verified !== right.verified) {
-      return Number(right.verified) - Number(left.verified)
-    }
-
-    return right.sales - left.sales
-  })
-}
-
 export const ProductsCatalogPage = () => {
-  const { products, isLoading, error } = useFeaturedProducts()
   const [filters, setFilters] = useState<MarketplaceFilters>(defaultFilters)
   const deferredQuery = useDeferredValue(filters.query)
+  const requestFilters = useMemo(
+    () => ({
+      ...filters,
+      query: deferredQuery,
+    }),
+    [deferredQuery, filters],
+  )
+  const { products, isLoading, error } = useProductsCatalog(requestFilters)
 
   const handleFilterChange = <Key extends keyof MarketplaceFilters>(
     key: Key,
@@ -89,42 +58,7 @@ export const ProductsCatalogPage = () => {
     })
   }
 
-  const normalizedQuery = deferredQuery.trim().toLowerCase()
-
-  const filteredProducts = sortProducts(
-    products.filter((product) => {
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        [product.title, product.summary, product.category, product.authorName, ...product.stack]
-          .join(' ')
-          .toLowerCase()
-          .includes(normalizedQuery)
-
-      const matchesCategory =
-        filters.category === 'all' || product.categoryId === filters.category
-
-      const matchesLicense =
-        filters.license === 'all' || product.licenseId === filters.license
-
-      const matchesVerified = !filters.verifiedOnly || product.verified
-
-      const matchesStacks =
-        filters.stacks.length === 0 ||
-        filters.stacks.every((selectedStack) => product.stack.includes(selectedStack))
-
-      return (
-        matchesQuery &&
-        matchesCategory &&
-        matchesLicense &&
-        matchesVerified &&
-        matchesStacks &&
-        matchesPriceRange(product.price, filters.price)
-      )
-    }),
-    filters.sort,
-  )
-
-  const resultCount = isLoading ? 6 : filteredProducts.length
+  const resultCount = isLoading ? 6 : products.length
 
   return (
     <Container
@@ -171,7 +105,7 @@ export const ProductsCatalogPage = () => {
         </Grid>
         <Grid size={{ xs: 12, lg: 8 }} sx={{ minWidth: 0 }}>
           <ProjectsGrid
-            products={filteredProducts}
+            products={products}
             isLoading={isLoading}
             error={error}
             title="รายการซอร์สโค้ดและเทมเพลตทั้งหมด"

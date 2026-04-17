@@ -1,5 +1,7 @@
-import axios from 'axios'
+import axios, { AxiosHeaders } from 'axios'
 import { env } from '@/config/env'
+import { readStoredAuthSession } from '@/utils/authSession'
+import { getClientSessionKey } from '@/utils/clientSession'
 
 export const apiClient = axios.create({
   baseURL: env.apiBaseUrl || undefined,
@@ -7,6 +9,26 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+})
+
+apiClient.interceptors.request.use((config) => {
+  const session = readStoredAuthSession()
+  const sessionKey = getClientSessionKey()
+  const headers = AxiosHeaders.from(config.headers)
+
+  headers.set('X-Session-Key', sessionKey)
+
+  if (session?.id) {
+    headers.set('X-User-ID', session.id)
+  }
+
+  if (session?.email) {
+    headers.set('X-User-Email', session.email)
+  }
+
+  config.headers = headers
+
+  return config
 })
 
 apiClient.interceptors.response.use(

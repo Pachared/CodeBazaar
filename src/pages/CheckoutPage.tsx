@@ -594,7 +594,16 @@ export const CheckoutPage = () => {
       }
 
       if (Object.keys(nextProfile).length > 0) {
-        updateProfile(nextProfile)
+        void updateProfile(nextProfile).catch((error) => {
+          notify({
+            severity: 'warning',
+            title: 'ซิงก์โปรไฟล์ไม่สำเร็จ',
+            message:
+              error instanceof Error
+                ? error.message
+                : 'คำสั่งซื้อถูกสร้างแล้ว แต่ข้อมูลโปรไฟล์ยังไม่ถูกอัปเดตจาก API',
+          })
+        })
       }
 
       addCompletedOrderToLibrary({
@@ -1239,8 +1248,8 @@ export const CheckoutPage = () => {
                   <Typography variant="h6">ไฟล์พร้อมใช้งานทันทีหลังยืนยัน</Typography>
                 </Stack>
                 <Typography color="text.secondary">
-                  หน้า checkout นี้รองรับการต่อ API จริงในภายหลัง โดยตอนนี้เป็น mock flow
-                  สำหรับทดสอบการสร้างคำสั่งซื้อก่อนเชื่อม payment gateway
+                  หน้า checkout นี้รองรับทั้งการทดสอบ flow และการเชื่อม API จริง
+                  โดยรายละเอียดการชำระเงินจะถูกส่งต่อไปยังระบบคำสั่งซื้อของ CodeBazaar ตามช่องทางที่เลือก
                 </Typography>
               </Stack>
             </Paper>

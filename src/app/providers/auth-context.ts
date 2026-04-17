@@ -5,7 +5,7 @@ export interface AuthContextValue {
   user: AuthSessionUser | null
   isAuthenticated: boolean
   signIn: (session: AuthSessionUser) => void
-  updateProfile: (profile: AuthProfileUpdate) => void
+  updateProfile: (profile: AuthProfileUpdate) => Promise<AuthSessionUser | null>
   signOut: () => void
 }
 

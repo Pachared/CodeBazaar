@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { PropsWithChildren } from 'react'
 import { DownloadLibraryContext } from '@/app/providers/download-library-context'
+import { hasRemoteApi } from '@/config/env'
+import { downloadsService } from '@/services/api/downloads.service'
 import { useAuth } from '@/app/providers/useAuth'
 import { useNotification } from '@/app/providers/useNotification'
 import type { CompletedDownloadOrderInput, DownloadLibraryItem } from '@/types/downloads'
@@ -39,9 +41,11 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
   const { user } = useAuth()
   const { notify } = useNotification()
   const [libraryByUser, setLibraryByUser] = useState(() => readStoredDownloadLibrary())
+  const [remoteItems, setRemoteItems] = useState<DownloadLibraryItem[]>([])
+  const [loadedUserKey, setLoadedUserKey] = useState<string | null>(null)
 
   const userKey = user?.id ?? null
-  const items = useMemo(
+  const localItems = useMemo(
     () =>
       userKey
         ? [...(libraryByUser[userKey] ?? [])].sort(
@@ -51,6 +55,8 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
         : [],
     [libraryByUser, userKey],
   )
+  const items = hasRemoteApi ? (userKey && loadedUserKey === userKey ? remoteItems : []) : localItems
+  const hasLoaded = !hasRemoteApi || !userKey || loadedUserKey === userKey
   const totalSpent = items.reduce((total, item) => total + item.price, 0)
 
   const commitLibrary = (
@@ -68,6 +74,19 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
 
   const addCompletedOrderToLibrary = (order: CompletedDownloadOrderInput) => {
     if (!userKey || order.items.length === 0) {
+      return
+    }
+
+    if (hasRemoteApi) {
+      void downloadsService
+        .getDownloads()
+        .then((nextItems) => {
+          setRemoteItems(nextItems)
+          setLoadedUserKey(userKey)
+        })
+        .catch(() => {
+          setLoadedUserKey(userKey)
+        })
       return
     }
 
@@ -119,18 +138,38 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
 
     const downloadedAt = new Date().toISOString()
 
-    commitLibrary((currentState) => ({
-      ...currentState,
-      [userKey]: (currentState[userKey] ?? []).map((item) =>
-        item.libraryItemId === libraryItemId
-          ? {
-              ...item,
-              downloadsCount: item.downloadsCount + 1,
-              lastDownloadedAt: downloadedAt,
-            }
-          : item,
-      ),
-    }))
+    if (hasRemoteApi) {
+      void downloadsService
+        .markDownloaded(libraryItemId)
+        .then(() => downloadsService.getDownloads())
+        .then((nextItems) => {
+          setRemoteItems(nextItems)
+          setLoadedUserKey(userKey)
+        })
+        .catch((error) => {
+          notify({
+            severity: 'error',
+            title: 'อัปเดตสถานะดาวน์โหลดไม่สำเร็จ',
+            message:
+              error instanceof Error ? error.message : 'ลองดาวน์โหลดใหม่อีกครั้งในภายหลัง',
+          })
+        })
+    }
+
+    if (!hasRemoteApi) {
+      commitLibrary((currentState) => ({
+        ...currentState,
+        [userKey]: (currentState[userKey] ?? []).map((item) =>
+          item.libraryItemId === libraryItemId
+            ? {
+                ...item,
+                downloadsCount: item.downloadsCount + 1,
+                lastDownloadedAt: downloadedAt,
+              }
+            : item,
+        ),
+      }))
+    }
 
     notify({
       severity: 'success',
@@ -139,11 +178,37 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
     })
   }
 
+  useEffect(() => {
+    if (!hasRemoteApi || !userKey || loadedUserKey === userKey) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    void downloadsService
+      .getDownloads(controller.signal)
+      .then((nextItems) => {
+        if (!controller.signal.aborted) {
+          setRemoteItems(nextItems)
+          setLoadedUserKey(userKey)
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setRemoteItems([])
+          setLoadedUserKey(userKey)
+        }
+      })
+
+    return () => controller.abort()
+  }, [loadedUserKey, userKey])
+
   return (
     <DownloadLibraryContext.Provider
       value={{
         items,
         totalSpent,
+        hasLoaded,
         addCompletedOrderToLibrary,
         downloadItem,
       }}

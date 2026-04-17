@@ -14,11 +14,10 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { SectionBadge } from '@/components/common/SectionBadge'
-import { useFeaturedProducts } from '@/hooks/useFeaturedProducts'
+import { useMarketplaceSellers } from '@/hooks/useMarketplaceSellers'
 import { glassSurfaceMutedSx, metricSurfaceSx, uiRadius } from '@/theme/uiTokens'
 import type { MarketplaceSeller } from '@/types/marketplace'
 import { formatCurrency } from '@/utils/formatCurrency'
-import { getMarketplaceSellers } from '@/utils/marketplaceSellers'
 
 const SellerMetricCard = ({ label, value }: { label: string; value: string }) => (
   <Paper sx={{ ...metricSurfaceSx, height: '100%' }}>
@@ -122,8 +121,7 @@ const SellerDirectoryCard = ({ seller }: { seller: MarketplaceSeller }) => (
 )
 
 export const SellersDirectoryPage = () => {
-  const { products, isLoading, error } = useFeaturedProducts()
-  const sellers = getMarketplaceSellers(products)
+  const { sellers, isLoading, error } = useMarketplaceSellers()
 
   return (
     <Container

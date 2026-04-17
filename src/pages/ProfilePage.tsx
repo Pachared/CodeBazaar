@@ -190,7 +190,7 @@ const SellerDocumentUploadCard = ({
 
 interface AuthenticatedProfileContentProps {
   user: AuthSessionUser
-  onSave: (profile: AuthProfileUpdate) => void
+  onSave: (profile: AuthProfileUpdate) => Promise<AuthSessionUser | null>
   onSignOut: () => void
 }
 
@@ -270,7 +270,7 @@ const AuthenticatedProfileContent = ({
         })
     }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const nextProfile: AuthProfileUpdate = {
       name: form.name.trim() || user.name,
       phoneNumber: form.phoneNumber.trim(),
@@ -288,17 +288,29 @@ const AuthenticatedProfileContent = ({
       notifyMarketplace: form.notifyMarketplace,
     }
 
-    onSave(nextProfile)
-    setForm((currentForm) => ({
-      ...currentForm,
-      ...nextProfile,
-      name: nextProfile.name ?? currentForm.name,
-    }))
-    notify({
-      severity: 'success',
-      title: 'บันทึกโปรไฟล์แล้ว',
-      message: 'ข้อมูลโปรไฟล์และการตั้งค่าถูกอัปเดตในเครื่องเรียบร้อยแล้ว',
-    })
+    try {
+      const updatedUser = await onSave(nextProfile)
+
+      setForm((currentForm) => ({
+        ...currentForm,
+        ...nextProfile,
+        ...(updatedUser ?? {}),
+        name: (updatedUser?.name ?? nextProfile.name) || currentForm.name,
+      }))
+
+      notify({
+        severity: 'success',
+        title: 'บันทึกโปรไฟล์แล้ว',
+        message: 'ข้อมูลโปรไฟล์และการตั้งค่าถูกอัปเดตเรียบร้อยแล้ว',
+      })
+    } catch (error) {
+      notify({
+        severity: 'error',
+        title: 'บันทึกโปรไฟล์ไม่สำเร็จ',
+        message:
+          error instanceof Error ? error.message : 'ลองใหม่อีกครั้งหรือเช็กการเชื่อมต่อ API ของคุณ',
+      })
+    }
   }
 
   return (
@@ -327,7 +339,7 @@ const AuthenticatedProfileContent = ({
               <Stack spacing={1.2}>
                 <AccountMetaRow label="สิทธิ์การใช้งาน" value={accountTypeLabel} />
                 <AccountMetaRow label="ผู้ให้บริการ" value="Google" />
-                <AccountMetaRow label="สถานะข้อมูล" value="บันทึกในเครื่อง" />
+                <AccountMetaRow label="สถานะข้อมูล" value="พร้อมซิงก์กับระบบ" />
                 <AccountMetaRow label="อีเมลบัญชี" value={user.email} />
                 <AccountMetaRow label="เบอร์โทร" value={form.phoneNumber || 'ยังไม่ระบุ'} />
                 <AccountMetaRow

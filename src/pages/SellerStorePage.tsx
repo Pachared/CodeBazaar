@@ -15,10 +15,9 @@ import { Link as RouterLink, useParams } from 'react-router-dom'
 import { ProfileAvatar } from '@/components/common/ProfileAvatar'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import { ProjectsGrid } from '@/components/marketplace/ProjectsGrid'
-import { useFeaturedProducts } from '@/hooks/useFeaturedProducts'
+import { useSellerStore } from '@/hooks/useSellerStore'
 import { glassSurfaceMutedSx, metricSurfaceSx, uiRadius } from '@/theme/uiTokens'
 import { formatCurrency } from '@/utils/formatCurrency'
-import { getMarketplaceSellerBySlug, getProductsBySellerSlug } from '@/utils/marketplaceSellers'
 
 const SellerMetricCard = ({ label, value }: { label: string; value: string }) => (
   <Paper sx={{ ...metricSurfaceSx, height: '100%' }}>
@@ -101,7 +100,7 @@ const ErrorState = ({ message }: { message: string }) => (
 
 export const SellerStorePage = () => {
   const { sellerSlug } = useParams()
-  const { products, isLoading, error } = useFeaturedProducts()
+  const { seller, products, isLoading, error } = useSellerStore(sellerSlug)
 
   if (isLoading) {
     return <LoadingState />
@@ -110,15 +109,6 @@ export const SellerStorePage = () => {
   if (!sellerSlug || error) {
     return <ErrorState message={error ?? 'ไม่พบร้านผู้ขายที่คุณต้องการดู'} />
   }
-
-  const seller = getMarketplaceSellerBySlug(products, sellerSlug)
-  const sellerProducts = getProductsBySellerSlug(products, sellerSlug).sort((left, right) => {
-    if (left.verified !== right.verified) {
-      return Number(right.verified) - Number(left.verified)
-    }
-
-    return right.sales - left.sales
-  })
 
   if (!seller) {
     return <ErrorState message="ไม่พบผู้ขายรายนี้ในรายการซอร์สโค้ดและเทมเพลตของระบบ" />
@@ -223,7 +213,7 @@ export const SellerStorePage = () => {
 
         <Grid size={{ xs: 12, md: 8 }}>
           <ProjectsGrid
-            products={sellerProducts}
+            products={products}
             isLoading={false}
             error={null}
             showIntro={false}
