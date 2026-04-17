@@ -4,6 +4,7 @@ import CloudUploadRoundedIcon from '@mui/icons-material/CloudUploadRounded'
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded'
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
 import FolderZipRoundedIcon from '@mui/icons-material/FolderZipRounded'
+import GitHubIcon from '@mui/icons-material/GitHub'
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded'
 import LayersRoundedIcon from '@mui/icons-material/LayersRounded'
 import SellRoundedIcon from '@mui/icons-material/SellRounded'
@@ -26,11 +27,13 @@ import { useState } from 'react'
 import { Link as RouterLink, useOutletContext } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
 import { useNotification } from '@/app/providers/useNotification'
-import { IOSSwitch } from '@/components/common/IOSSwitch'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import { ProjectPreview } from '@/components/marketplace/ProjectPreview'
 import {
   sellerAssetTypeOptions,
+  sellerDeliveryMethodOptions,
+  sellerPlatformPolicyStatements,
+  sellerStoragePolicyHighlights,
   sellerUploadCategoryOptions,
   sellerUploadLicenseOptions,
 } from '@/constants/marketplace'
@@ -38,11 +41,17 @@ import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
 import { sellerService } from '@/services/api/seller.service'
 import { glassSurfaceMutedSx, metricSurfaceSx, uiRadius } from '@/theme/uiTokens'
 import type { Product } from '@/types/marketplace'
-import type { SellerAssetType, SellerListingInput, SellerListingMode } from '@/types/seller'
+import type {
+  SellerAssetType,
+  SellerDeliveryMethod,
+  SellerListingInput,
+  SellerListingMode,
+} from '@/types/seller'
 import { formatCurrency } from '@/utils/formatCurrency'
 
 interface SellerStudioFormState {
   assetType: SellerAssetType
+  deliveryMethod: SellerDeliveryMethod
   title: string
   categoryId: string
   licenseId: string
@@ -60,13 +69,14 @@ interface SellerStudioFormState {
   packageFileName: string
   coverFileName: string
   docsFileName: string
-  instantDelivery: boolean
-  sourceIncluded: boolean
-  documentationIncluded: boolean
+  githubRepoUrl: string
+  githubReleaseTag: string
+  githubAccessNote: string
 }
 
 const defaultSellerStudioForm: SellerStudioFormState = {
   assetType: 'source-code',
+  deliveryMethod: 'release-binary',
   title: '',
   categoryId: 'marketplace',
   licenseId: 'commercial',
@@ -84,9 +94,9 @@ const defaultSellerStudioForm: SellerStudioFormState = {
   packageFileName: '',
   coverFileName: '',
   docsFileName: '',
-  instantDelivery: true,
-  sourceIncluded: true,
-  documentationIncluded: true,
+  githubRepoUrl: '',
+  githubReleaseTag: '',
+  githubAccessNote: '',
 }
 
 const findLabel = (options: { label: string; value: string }[], value: string) =>
@@ -187,26 +197,46 @@ const ReviewRow = ({ label, value }: { label: string; value: string }) => (
   </Stack>
 )
 
-const DeliveryOptionCard = ({
+const DeliveryMethodCard = ({
   title,
   description,
-  checked,
-  onChange,
+  helperText,
+  selected,
+  onSelect,
 }: {
   title: string
   description: string
-  checked: boolean
-  onChange: (checked: boolean) => void
+  helperText: string
+  selected: boolean
+  onSelect: () => void
 }) => (
-  <Paper sx={{ ...metricSurfaceSx, height: '100%' }}>
-    <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-      <Box>
-        <Typography variant="body2" color="text.secondary">
-          {title}
-        </Typography>
-        <Typography variant="body2">{description}</Typography>
-      </Box>
-      <IOSSwitch checked={checked} onChange={(event) => onChange(event.target.checked)} />
+  <Paper
+    component="button"
+    type="button"
+    onClick={onSelect}
+    sx={{
+      ...metricSurfaceSx,
+      width: '100%',
+      height: '100%',
+      textAlign: 'left',
+      cursor: 'pointer',
+      borderColor: selected ? 'rgba(17, 17, 17, 0.88)' : undefined,
+      backgroundColor: selected ? 'rgba(17, 17, 17, 0.05)' : undefined,
+      transition: 'transform 180ms ease, border-color 180ms ease, background-color 180ms ease',
+      '&:hover': {
+        transform: 'translateY(-2px)',
+        borderColor: 'rgba(17, 17, 17, 0.88)',
+      },
+    }}
+  >
+    <Stack spacing={0.9}>
+      <Typography variant="body2" color="text.secondary">
+        {title}
+      </Typography>
+      <Typography variant="body2">{description}</Typography>
+      <Typography color="text.secondary" sx={{ lineHeight: 1.75 }}>
+        {helperText}
+      </Typography>
     </Stack>
   </Paper>
 )
@@ -274,20 +304,20 @@ export const SellerStudioPage = () => {
   const includedFileValues = splitByLine(form.includedFiles)
   const categoryLabel = findLabel(sellerUploadCategoryOptions, form.categoryId)
   const licenseLabel = findLabel(sellerUploadLicenseOptions, form.licenseId)
-  const deliveryLabel = form.instantDelivery
-    ? 'ดาวน์โหลดได้ทันที'
-    : form.sourceIncluded
-      ? 'รวมไฟล์ต้นฉบับ'
-      : form.documentationIncluded
-        ? 'รวมเอกสารประกอบ'
-        : 'จัดส่งหลังตรวจสอบ'
-  const fileFormatLabel = [
-    form.packageFileName ? 'ไฟล์หลัก' : null,
-    form.coverFileName ? 'ภาพพรีวิว' : null,
-    form.docsFileName ? 'เอกสาร' : null,
-  ]
-    .filter(Boolean)
-    .join(' + ') || 'ยังไม่ได้แนบไฟล์'
+  const selectedDeliveryMethod =
+    sellerDeliveryMethodOptions.find((option) => option.value === form.deliveryMethod) ??
+    sellerDeliveryMethodOptions[0]
+  const deliveryLabel = selectedDeliveryMethod.label
+  const hasPrimaryArtifact =
+    form.deliveryMethod === 'github-private-repo'
+      ? form.githubRepoUrl.trim().length > 0
+      : form.packageFileName.length > 0
+  const fileFormatLabel =
+    form.deliveryMethod === 'github-private-repo'
+      ? form.githubRepoUrl.trim() || 'GitHub private repo'
+      : [form.packageFileName ? 'ไฟล์หลัก' : null, form.coverFileName ? 'ภาพพรีวิว' : null, form.docsFileName ? 'เอกสาร' : null]
+          .filter(Boolean)
+          .join(' + ') || 'ยังไม่ได้แนบไฟล์'
   const previewProduct: Product = {
     id: 'seller-studio-preview',
     categoryId: form.categoryId,
@@ -324,7 +354,7 @@ export const SellerStudioPage = () => {
     form.description.trim().length > 0 &&
     Number.isFinite(parsedPrice) &&
     parsedPrice > 0 &&
-    form.packageFileName.length > 0
+    hasPrimaryArtifact
 
   const handleFieldChange = <Key extends keyof SellerStudioFormState>(
     key: Key,
@@ -358,7 +388,10 @@ export const SellerStudioPage = () => {
       notify({
         severity: 'warning',
         title: 'ข้อมูลยังไม่ครบ',
-        message: 'กรอกชื่อรายการ ราคา คำอธิบาย และแนบไฟล์แพ็กเกจหลักก่อนบันทึกหรือส่งขาย',
+        message:
+          form.deliveryMethod === 'github-private-repo'
+            ? 'กรอกชื่อรายการ ราคา คำอธิบาย และข้อมูล GitHub private repo ก่อนบันทึกหรือส่งขาย'
+            : 'กรอกชื่อรายการ ราคา คำอธิบาย และแนบ artifact หลักก่อนบันทึกหรือส่งขาย',
       })
       return
     }
@@ -381,12 +414,21 @@ export const SellerStudioPage = () => {
       demoUrl: form.demoUrl.trim(),
       supportUrl: form.supportUrl.trim(),
       includedFiles: includedFileValues,
+      deliveryMethod: form.deliveryMethod,
       packageFileName: form.packageFileName,
       coverFileName: form.coverFileName,
       docsFileName: form.docsFileName,
-      instantDelivery: form.instantDelivery,
-      sourceIncluded: form.sourceIncluded,
-      documentationIncluded: form.documentationIncluded,
+      githubRepoUrl: form.githubRepoUrl.trim(),
+      githubReleaseTag: form.githubReleaseTag.trim(),
+      githubAccessNote: form.githubAccessNote.trim(),
+      storageProvider: 'cloudflare-r2',
+      storageVisibility: 'private',
+      downloadAccess: 'signed-url',
+      signedUrlTtlMinutes: 10,
+      auditLoggingEnabled: true,
+      sha256Enabled: true,
+      opaqueStorageKeyEnabled: true,
+      sellerPolicyAccepted: true,
     }
 
     try {
@@ -431,11 +473,15 @@ export const SellerStudioPage = () => {
               เข้าสู่ระบบก่อนเพื่ออัปโหลดซอร์สโค้ด เทมเพลต และชุดคอมโพเนนต์สำหรับขาย
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 500 }}>
-              ระบบนี้รองรับการบันทึกร่างรายการขาย แนบไฟล์ และเตรียมข้อมูลสำหรับต่อ API จริงในภายหลัง
+              ผู้ขายของระบบนี้ต้องเชื่อม GitHub ก่อน จึงจะเริ่มลงรายการขายและจัดการ artifact สำหรับส่งมอบได้
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-              <Button variant="contained" onClick={() => openAuthDialog('seller-register')}>
-                เปิดบัญชีผู้ขาย
+              <Button
+                variant="contained"
+                startIcon={<GitHubIcon />}
+                onClick={() => openAuthDialog('seller-register')}
+              >
+                เปิดบัญชีผู้ขายด้วย GitHub
               </Button>
               <Button
                 variant="outlined"
@@ -472,11 +518,16 @@ export const SellerStudioPage = () => {
               อัปเกรดบัญชีเป็นผู้ขายก่อน เพื่อเริ่มอัปโหลดไฟล์และเปิดขายบน CodeBazaar
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 500 }}>
-              เมื่อเปิดบัญชีผู้ขายแล้ว คุณจะสามารถอัปโหลดไฟล์แพ็กเกจ ตั้งราคา กำหนดไลเซนส์ และส่งรายการขายได้จากหน้านี้
+              เมื่อเชื่อม GitHub เพื่อเปิดบัญชีผู้ขายแล้ว คุณจะสามารถเลือกรูปแบบการส่งมอบ
+              อัปโหลดไฟล์หรือตั้งค่า private repo และส่งรายการขายได้จากหน้านี้
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-              <Button variant="contained" onClick={() => openAuthDialog('seller-register')}>
-                เปิดบัญชีผู้ขาย
+              <Button
+                variant="contained"
+                startIcon={<GitHubIcon />}
+                onClick={() => openAuthDialog('seller-register')}
+              >
+                เปิดบัญชีผู้ขายด้วย GitHub
               </Button>
               <Button variant="outlined" component={RouterLink} to="/profile">
                 ไปหน้าตั้งค่าโปรไฟล์
@@ -505,10 +556,11 @@ export const SellerStudioPage = () => {
           <Stack spacing={2}>
             <SectionBadge label="สตูดิโอสำหรับอัปโหลดรายการขาย" />
             <Typography variant="h2" sx={{ maxWidth: 820 }}>
-              อัปโหลดซอร์สโค้ด เทมเพลต และชุดคอมโพเนนต์ เพื่อเตรียมลงขายและจัดการข้อมูลรายการได้จากหน้าจอเดียว
+              จัดการข้อมูลรายการขาย เลือกรูปแบบการส่งมอบ และเตรียม artifact ให้พร้อมก่อนเปิดขายจริง
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 780, fontWeight: 500 }}>
-              หน้านี้ใช้สำหรับกรอกข้อมูลสินค้า อัปโหลดไฟล์ที่เกี่ยวข้อง และเตรียมรายละเอียดให้พร้อมก่อนส่งขึ้นขายบน CodeBazaar
+              หน้านี้ใช้สำหรับกรอกข้อมูลสินค้า ตั้งค่าการส่งมอบแบบ Release/Binary, GitHub private repo หรือ Source package
+              และเตรียมรายละเอียดทั้งหมดให้พร้อมก่อนส่งขึ้นขายบน CodeBazaar
             </Typography>
           </Stack>
 
@@ -722,38 +774,79 @@ export const SellerStudioPage = () => {
                 <Divider />
 
                 <Box>
-                  <Typography variant="h6">ตัวเลือกการส่งมอบและสิ่งที่รวมในแพ็กเกจ</Typography>
+                  <Typography variant="h6">รูปแบบการส่งมอบและการเข้าถึงไฟล์</Typography>
                   <Typography color="text.secondary" sx={{ mt: 0.6 }}>
-                    ตั้งค่าว่ารายการนี้จะดาวน์โหลดได้ทันที มีซอร์สโค้ดต้นฉบับ และมีเอกสารประกอบหรือไม่
+                    เลือกเพียง 1 วิธีหลักสำหรับส่งมอบงานของรายการนี้ ระบบจะใช้รูปแบบนี้ไปแสดงทั้งบนหน้ารายละเอียดสินค้า
+                    และ flow การดาวน์โหลดของผู้ซื้อ
                   </Typography>
                 </Box>
 
                 <Grid container spacing={1.5}>
-                  <Grid size={{ xs: 12 }}>
-                    <DeliveryOptionCard
-                      title="ดาวน์โหลดได้ทันที"
-                      description="เปิดส่งมอบแบบดิจิทัลอัตโนมัติ"
-                      checked={form.instantDelivery}
-                      onChange={(checked) => handleFieldChange('instantDelivery', checked)}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <DeliveryOptionCard
-                      title="รวมซอร์สโค้ด"
-                      description="แนบไฟล์ต้นฉบับสำหรับผู้ซื้อ"
-                      checked={form.sourceIncluded}
-                      onChange={(checked) => handleFieldChange('sourceIncluded', checked)}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <DeliveryOptionCard
-                      title="รวมเอกสารประกอบ"
-                      description="แนบ docs หรือคู่มือการติดตั้ง"
-                      checked={form.documentationIncluded}
-                      onChange={(checked) => handleFieldChange('documentationIncluded', checked)}
-                    />
-                  </Grid>
+                  {sellerDeliveryMethodOptions.map((option) => (
+                    <Grid key={option.value} size={{ xs: 12, md: 4 }}>
+                      <DeliveryMethodCard
+                        title={option.label}
+                        description={option.description}
+                        helperText={option.helperText}
+                        selected={form.deliveryMethod === option.value}
+                        onSelect={() => handleFieldChange('deliveryMethod', option.value)}
+                      />
+                    </Grid>
+                  ))}
                 </Grid>
+
+                {form.deliveryMethod === 'github-private-repo' ? (
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, md: 7 }}>
+                      <TextField
+                        fullWidth
+                        label="GitHub repository (owner/repo)"
+                        value={form.githubRepoUrl}
+                        onChange={(event) => handleFieldChange('githubRepoUrl', event.target.value)}
+                        placeholder="เช่น github.com/your-org/private-marketplace-template"
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 5 }}>
+                      <TextField
+                        fullWidth
+                        label="Release tag หรือ branch"
+                        value={form.githubReleaseTag}
+                        onChange={(event) =>
+                          handleFieldChange('githubReleaseTag', event.target.value)
+                        }
+                        placeholder="เช่น v1.0.0 หรือ main"
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        minRows={3}
+                        label="รายละเอียดการส่งมอบผ่าน GitHub"
+                        value={form.githubAccessNote}
+                        onChange={(event) =>
+                          handleFieldChange('githubAccessNote', event.target.value)
+                        }
+                        placeholder="บอกว่าผู้ซื้อจะได้รับสิทธิ์เข้าถึง repo, release หรือ invitation แบบใดหลังคำสั่งซื้อสำเร็จ"
+                      />
+                    </Grid>
+                  </Grid>
+                ) : null}
+
+                <Paper sx={{ ...glassSurfaceMutedSx, p: 2.25, borderRadius: uiRadius.lg }}>
+                  <Stack spacing={1.1}>
+                    <SectionBadge label="การเก็บไฟล์ของรายการนี้" />
+                    <Typography color="text.secondary" sx={{ lineHeight: 1.85 }}>
+                      ระบบนี้ตั้งใจให้ไฟล์ทุกชิ้นถูกเก็บแบบ private บน Cloudflare R2 และส่งมอบผ่าน signed URL
+                      แบบหมดอายุเร็วหรือสิทธิ์ GitHub ที่ผูกกับคำสั่งซื้อเท่านั้น
+                    </Typography>
+                    {sellerStoragePolicyHighlights.map((item) => (
+                      <Typography key={item.title} color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                        • <strong>{item.title}</strong> — {item.description}
+                      </Typography>
+                    ))}
+                  </Stack>
+                </Paper>
               </Stack>
             </Paper>
 
@@ -762,20 +855,48 @@ export const SellerStudioPage = () => {
                 <Box>
                   <SectionBadge label="ไฟล์ที่อัปโหลด" />
                   <Typography variant="h4" sx={{ mt: 1.25 }}>
-                    แนบไฟล์แพ็กเกจหลัก ภาพพรีวิว และเอกสารประกอบให้พร้อมก่อนส่งขาย
+                    แนบ artifact และไฟล์ประกอบให้ตรงกับวิธีส่งมอบที่คุณเลือกไว้
                   </Typography>
                 </Box>
 
                 <Stack spacing={1.5}>
-                  <UploadFieldCard
-                    title="ไฟล์แพ็กเกจหลัก"
-                    description="ใช้สำหรับไฟล์ .zip หรือแพ็กเกจบีบอัดที่ลูกค้าจะดาวน์โหลด"
-                    accept=".zip,.rar,.7z,.tar,.gz"
-                    icon={<FolderZipRoundedIcon />}
-                    fileName={form.packageFileName}
-                    buttonLabel="เลือกไฟล์หลัก"
-                    onSelect={handleFileSelect('packageFileName')}
-                  />
+                  {form.deliveryMethod === 'github-private-repo' ? (
+                    <Paper sx={{ ...glassSurfaceMutedSx, p: 2.25, borderRadius: uiRadius.lg }}>
+                      <Stack spacing={1.1}>
+                        <Typography variant="h6">รายการนี้ใช้ GitHub private repo integration</Typography>
+                        <Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                          จึงไม่จำเป็นต้องอัปโหลดไฟล์หลักเข้ามาในหน้าฟอร์มนี้ ระบบจะใช้ข้อมูล repo, release tag
+                          และ metadata ด้านบนเป็นแกนสำหรับเชื่อมสิทธิ์หลังจากมีคำสั่งซื้อแทน
+                        </Typography>
+                      </Stack>
+                    </Paper>
+                  ) : (
+                    <UploadFieldCard
+                      title={
+                        form.deliveryMethod === 'release-binary'
+                          ? 'ไฟล์ release หรือ binary'
+                          : 'ไฟล์ source package'
+                      }
+                      description={
+                        form.deliveryMethod === 'release-binary'
+                          ? 'อัปโหลด artifact สำเร็จรูป เช่น .zip, .exe, .dmg หรือ .jar ที่พร้อมส่งมอบให้ผู้ซื้อ'
+                          : 'อัปโหลด source code ที่บีบอัดไว้สำหรับส่งมอบให้ผู้ซื้อในรูปแบบไฟล์แพ็กเกจ'
+                      }
+                      accept={
+                        form.deliveryMethod === 'release-binary'
+                          ? '.zip,.exe,.dmg,.jar,.apk,.msi,.rar,.7z,.tar,.gz'
+                          : '.zip,.rar,.7z,.tar,.gz'
+                      }
+                      icon={<FolderZipRoundedIcon />}
+                      fileName={form.packageFileName}
+                      buttonLabel={
+                        form.deliveryMethod === 'release-binary'
+                          ? 'เลือกไฟล์ release'
+                          : 'เลือก source package'
+                      }
+                      onSelect={handleFileSelect('packageFileName')}
+                    />
+                  )}
                   <UploadFieldCard
                     title="ภาพปกหรือพรีวิว"
                     description="แนบภาพปกเพื่อใช้แสดงบนรายการขายหรือหน้ารายละเอียดสินค้า"
@@ -795,6 +916,17 @@ export const SellerStudioPage = () => {
                     onSelect={handleFileSelect('docsFileName')}
                   />
                 </Stack>
+
+                <Paper sx={{ ...glassSurfaceMutedSx, p: 2.25, borderRadius: uiRadius.lg }}>
+                  <Stack spacing={1}>
+                    <SectionBadge label="policy ก่อนส่งขาย" />
+                    {sellerPlatformPolicyStatements.map((statement) => (
+                      <Typography key={statement} color="text.secondary" sx={{ lineHeight: 1.85 }}>
+                        • {statement}
+                      </Typography>
+                    ))}
+                  </Stack>
+                </Paper>
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
                   <Button
@@ -885,6 +1017,7 @@ export const SellerStudioPage = () => {
                       value={findLabel(sellerAssetTypeOptions, form.assetType)}
                     />
                     <PreviewMetaRow label="หมวดหมู่" value={categoryLabel} />
+                    <PreviewMetaRow label="วิธีส่งมอบ" value={deliveryLabel} />
                     <PreviewMetaRow label="ไลเซนส์" value={licenseLabel} />
                     <PreviewMetaRow
                       label="ราคา"
@@ -892,6 +1025,15 @@ export const SellerStudioPage = () => {
                     />
                     <PreviewMetaRow label="เวอร์ชัน" value={previewProduct.versionLabel} />
                     <PreviewMetaRow label="รูปแบบไฟล์" value={previewProduct.fileFormatLabel} />
+                  </Stack>
+                </Paper>
+
+                <Paper sx={{ ...metricSurfaceSx }}>
+                  <Stack spacing={1.1}>
+                    <PreviewMetaRow label="การเก็บไฟล์" value="Cloudflare R2 (private)" />
+                    <PreviewMetaRow label="การดาวน์โหลด" value="Signed URL แบบสั้น" />
+                    <PreviewMetaRow label="การตรวจสอบ" value="Audit log + SHA-256" />
+                    <PreviewMetaRow label="เส้นทางจัดเก็บ" value="สุ่มหลายชั้นและเดายาก" />
                   </Stack>
                 </Paper>
 

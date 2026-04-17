@@ -1,4 +1,6 @@
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
+import GitHubIcon from '@mui/icons-material/GitHub'
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import {
   Box,
@@ -9,13 +11,18 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Link as RouterLink, useOutletContext } from 'react-router-dom'
 import { useAuth } from '@/app/providers/useAuth'
 import { SectionBadge } from '@/components/common/SectionBadge'
 import {
+  sellerDeliveryMethodOptions,
   sellerCatalogTypes,
   sellerFeatures,
+  sellerPlatformPolicyStatements,
   sellerSteps,
+  sellerStoragePolicyHighlights,
   sellerUploadChecklist,
 } from '@/constants/marketplace'
 import type { MainLayoutOutletContext } from '@/layouts/MainLayout'
@@ -26,6 +33,14 @@ import {
   softAccentBackgroundMuted,
   uiRadius,
 } from '@/theme/uiTokens'
+
+const sellerOnboardingSections = [
+  'เริ่มต้นก่อนลงขาย',
+  'เตรียมก่อนเข้า Studio',
+  'รูปแบบการส่งมอบและการเก็บไฟล์',
+  'เลือกประเภทสินค้าที่จะขาย',
+  'สิ่งที่ระบบช่วยผู้ขาย',
+] as const
 
 const sellerPrimaryActionSx = {
   px: 3.25,
@@ -40,10 +55,155 @@ const sellerPrimaryActionSx = {
   },
 } as const
 
+interface GuidedSellerSectionProps {
+  active: boolean
+  completed: boolean
+  disabled: boolean
+  progressLabel: string
+  acceptLabel: string
+  onAccept: () => void
+  sectionRef: (node: HTMLDivElement | null) => void
+  children: ReactNode
+}
+
+const GuidedSellerSection = ({
+  active,
+  completed,
+  disabled,
+  progressLabel,
+  acceptLabel,
+  onAccept,
+  sectionRef,
+  children,
+}: GuidedSellerSectionProps) => (
+  <Box
+    ref={sectionRef}
+    sx={{
+      position: 'relative',
+      zIndex: active ? 12 : completed ? 2 : 1,
+      p: active ? { xs: 1.25, sm: 1.75, md: 2 } : 0,
+      opacity: disabled ? 0.54 : 1,
+      transition: 'padding 180ms ease, opacity 180ms ease, transform 180ms ease',
+      transform: active ? 'translateY(-2px)' : 'none',
+      pointerEvents: disabled ? 'none' : 'auto',
+    }}
+  >
+    <Box
+      sx={{
+        position: 'relative',
+        overflow: 'visible',
+        borderRadius: uiRadius.xl,
+        border: active
+          ? '1px solid rgba(17, 17, 17, 0.88)'
+          : completed
+            ? '1px solid rgba(17, 17, 17, 0.24)'
+            : undefined,
+        boxShadow: active
+          ? '0 0 0 9999px rgba(8, 10, 16, 0.58), 0 30px 90px rgba(17, 17, 17, 0.24)'
+          : undefined,
+        transition: 'box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease',
+      }}
+    >
+      {completed ? (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 14,
+            right: 14,
+            zIndex: 2,
+          }}
+        >
+          <SectionBadge label="ยอมรับแล้ว" />
+        </Box>
+      ) : null}
+
+      <Stack spacing={2.5}>
+        {children}
+
+        {active ? (
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.25}
+            sx={{
+              alignItems: { sm: 'center' },
+              justifyContent: 'space-between',
+            }}
+          >
+            <Typography color="text.secondary" sx={{ fontWeight: 600 }}>
+              {progressLabel}
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<CheckRoundedIcon />}
+              onClick={onAccept}
+              sx={{ alignSelf: { xs: 'stretch', sm: 'center' } }}
+            >
+              {acceptLabel}
+            </Button>
+          </Stack>
+        ) : null}
+      </Stack>
+    </Box>
+  </Box>
+)
+
 export const SellerPage = () => {
   const { user } = useAuth()
   const { openAuthDialog } = useOutletContext<MainLayoutOutletContext>()
   const isSeller = user?.role === 'seller'
+  const heroActionRef = useRef<HTMLDivElement | null>(null)
+  const sectionRefs = useRef<Array<HTMLDivElement | null>>([])
+  const [acceptedSectionCount, setAcceptedSectionCount] = useState(0)
+  const totalSectionCount = sellerOnboardingSections.length
+  const allSectionsAccepted = isSeller || acceptedSectionCount >= totalSectionCount
+  const activeSectionIndex = isSeller || allSectionsAccepted ? -1 : acceptedSectionCount
+
+  useEffect(() => {
+    if (activeSectionIndex < 0) {
+      return
+    }
+
+    const nextSection = sectionRefs.current[activeSectionIndex]
+    nextSection?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    })
+  }, [activeSectionIndex])
+
+  const handleAcceptSection = () => {
+    setAcceptedSectionCount((currentCount) => {
+      const nextCount = Math.min(currentCount + 1, totalSectionCount)
+
+      if (nextCount >= totalSectionCount) {
+        window.setTimeout(() => {
+          heroActionRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          })
+        }, 80)
+      }
+
+      return nextCount
+    })
+  }
+
+  const getSectionRef = (index: number) => (node: HTMLDivElement | null) => {
+    sectionRefs.current[index] = node
+  }
+
+  const getSectionProps = (index: number) => ({
+    active: activeSectionIndex === index,
+    completed: acceptedSectionCount > index || isSeller,
+    disabled: !isSeller && activeSectionIndex !== index && acceptedSectionCount <= index,
+    progressLabel:
+      index === totalSectionCount - 1
+        ? `กล่องสุดท้าย ${index + 1}/${totalSectionCount}`
+        : `อ่านรายละเอียดแล้วไปต่อ ${index + 1}/${totalSectionCount}`,
+    acceptLabel:
+      index === totalSectionCount - 1 ? 'ยอมรับครบทั้งหมด' : 'ยอมรับและไปกล่องถัดไป',
+    onAccept: handleAcceptSection,
+    sectionRef: getSectionRef(index),
+  })
 
   return (
     <Container
@@ -68,7 +228,8 @@ export const SellerPage = () => {
               เปิดร้านเพื่อขายโปรเจกต์ เทมเพลต และชุดไฟล์สำหรับนักพัฒนาในหน้าที่จัดการง่ายและพร้อมต่อยอด
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 760, fontWeight: 500 }}>
-              หากต้องการเพิ่มสินค้าใหม่หรือเริ่มลงรายการขายในระบบ ให้กดปุ่ม
+              หากต้องการเพิ่มสินค้าใหม่หรือเริ่มลงรายการขายในระบบ ให้เชื่อม GitHub เพื่อเปิดบัญชีผู้ขายก่อน
+              จากนั้นจึงกดปุ่ม
               {' '}
               ลงขายสินค้า
               {' '}
@@ -76,7 +237,11 @@ export const SellerPage = () => {
             </Typography>
           </Stack>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
+          <Stack
+            ref={heroActionRef}
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.25}
+          >
             {isSeller ? (
               <Button
                 variant="contained"
@@ -90,11 +255,12 @@ export const SellerPage = () => {
             ) : (
               <Button
                 variant="contained"
-                startIcon={<StorefrontRoundedIcon />}
+                startIcon={<GitHubIcon />}
+                disabled={!allSectionsAccepted}
                 onClick={() => openAuthDialog('seller-register')}
                 sx={sellerPrimaryActionSx}
               >
-                เปิดบัญชีผู้ขาย
+                เปิดบัญชีผู้ขายด้วย GitHub
               </Button>
             )}
             <Button
@@ -107,153 +273,245 @@ export const SellerPage = () => {
             </Button>
           </Stack>
 
+          {!isSeller ? (
+            <Typography color="text.secondary" sx={{ fontWeight: 600 }}>
+              {allSectionsAccepted
+                ? 'อ่านและยอมรับครบทุกกล่องแล้ว ตอนนี้คุณสามารถเปิดบัญชีผู้ขายด้วย GitHub ได้'
+                : `กรุณาอ่านรายละเอียดและกดยอมรับทีละกล่องให้ครบก่อนเปิดบัญชีผู้ขาย (${acceptedSectionCount}/${totalSectionCount})`}
+            </Typography>
+          ) : null}
+
         </Stack>
       </Paper>
 
-      <Paper sx={{ p: 3, borderRadius: uiRadius.xl }}>
-        <Stack spacing={2.5}>
-          <Box>
-            <SectionBadge label="เริ่มต้นก่อนลงขาย" />
-            <Typography variant="h4" sx={{ mt: 1.25 }}>
-              ดูลำดับการทำงานของผู้ขายก่อน เพื่อรู้ว่าควรเริ่มจากอะไร
-            </Typography>
-            <Typography color="text.secondary" sx={{ mt: 1 }}>
-              กล่องนี้สรุป flow จริงของระบบตั้งแต่เปิดบัญชีผู้ขาย ตั้งค่าโปรไฟล์ เตรียมข้อมูลสินค้า
-              ไปจนถึงเข้า Seller Studio เพื่อส่งรายการขาย
-            </Typography>
-          </Box>
+      <GuidedSellerSection {...getSectionProps(0)}>
+        <Paper sx={{ p: 3, borderRadius: uiRadius.xl }}>
+          <Stack spacing={2.5}>
+            <Box>
+              <SectionBadge label="เริ่มต้นก่อนลงขาย" />
+              <Typography variant="h4" sx={{ mt: 1.25 }}>
+                ดูลำดับการทำงานของผู้ขายก่อน เพื่อรู้ว่าควรเริ่มจากอะไร
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>
+                กล่องนี้สรุป flow จริงของระบบตั้งแต่เปิดบัญชีผู้ขาย ตั้งค่าโปรไฟล์ เตรียมข้อมูลสินค้า
+                ไปจนถึงเข้า Seller Studio เพื่อส่งรายการขาย
+              </Typography>
+            </Box>
 
-          <Grid container spacing={2}>
-            {sellerSteps.map((step, index) => (
-              <Grid key={step.title} size={{ xs: 12, md: 6, lg: 3 }}>
-                <Paper
-                  sx={{
-                    p: 2.5,
-                    borderRadius: uiRadius.lg,
-                    height: '100%',
-                    backgroundColor: 'rgba(255,255,255,0.72)',
-                  }}
-                >
-                  <Stack spacing={1.25}>
-                    <Typography variant="body2" color="text.secondary">
-                      ขั้นตอน {index + 1}
+            <Grid container spacing={2}>
+              {sellerSteps.map((step, index) => (
+                <Grid key={step.title} size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Paper
+                    sx={{
+                      p: 2.5,
+                      borderRadius: uiRadius.lg,
+                      height: '100%',
+                      backgroundColor: 'rgba(255,255,255,0.72)',
+                    }}
+                  >
+                    <Stack spacing={1.25}>
+                      <Typography variant="body2" color="text.secondary">
+                        ขั้นตอน {index + 1}
+                      </Typography>
+                      <Typography variant="h6">{step.title}</Typography>
+                      <Typography color="text.secondary">{step.description}</Typography>
+                    </Stack>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          </Stack>
+        </Paper>
+      </GuidedSellerSection>
+
+      <GuidedSellerSection {...getSectionProps(1)}>
+        <Paper
+          sx={{
+            p: { xs: 3, md: 3.5 },
+            borderRadius: uiRadius.xl,
+            background: softAccentBackgroundMuted,
+          }}
+        >
+          <Stack spacing={2.25}>
+            <Box>
+              <SectionBadge label="เตรียมก่อนเข้า Studio" />
+              <Typography variant="h4" sx={{ mt: 1.25 }}>
+                สิ่งที่ควรมีในแพ็กเกจก่อนกดลงขายสินค้า
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>
+                รายการด้านล่างคือข้อมูลหลักที่ควรเตรียมไว้ล่วงหน้า เพื่อให้ตอนเข้าหน้าสตูดิโอสามารถกรอกได้ครบ
+                และทำให้หน้ารายละเอียดสินค้าของคุณดูชัดเจนตั้งแต่ครั้งแรก
+              </Typography>
+            </Box>
+
+            <Grid container spacing={1.5}>
+              {sellerUploadChecklist.map((item) => (
+                <Grid key={item} size={{ xs: 12, md: 6, lg: 4 }}>
+                  <Paper
+                    sx={{
+                      ...glassSurfaceMutedSx,
+                      p: 2,
+                      borderRadius: uiRadius.lg,
+                      height: '100%',
+                    }}
+                  >
+                    <Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                      {item}
                     </Typography>
-                    <Typography variant="h6">{step.title}</Typography>
-                    <Typography color="text.secondary">{step.description}</Typography>
-                  </Stack>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Stack>
-      </Paper>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          </Stack>
+        </Paper>
+      </GuidedSellerSection>
 
-      <Paper
-        sx={{
-          p: { xs: 3, md: 3.5 },
-          borderRadius: uiRadius.xl,
-          background: softAccentBackgroundMuted,
-        }}
-      >
-        <Stack spacing={2.25}>
-          <Box>
-            <SectionBadge label="เตรียมก่อนเข้า Studio" />
-            <Typography variant="h4" sx={{ mt: 1.25 }}>
-              สิ่งที่ควรมีในแพ็กเกจก่อนกดลงขายสินค้า
-            </Typography>
-            <Typography color="text.secondary" sx={{ mt: 1 }}>
-              รายการด้านล่างคือข้อมูลหลักที่ควรเตรียมไว้ล่วงหน้า เพื่อให้ตอนเข้าหน้าสตูดิโอสามารถกรอกได้ครบ
-              และทำให้หน้ารายละเอียดสินค้าของคุณดูชัดเจนตั้งแต่ครั้งแรก
-            </Typography>
-          </Box>
+      <GuidedSellerSection {...getSectionProps(2)}>
+        <Paper
+          sx={{
+            p: { xs: 3, md: 3.5 },
+            borderRadius: uiRadius.xl,
+            background: softAccentBackgroundMuted,
+          }}
+        >
+          <Stack spacing={2.5}>
+            <Box>
+              <SectionBadge label="รูปแบบการส่งมอบและการเก็บไฟล์" />
+              <Typography variant="h4" sx={{ mt: 1.25 }}>
+                ระบบนี้ออกแบบให้ผู้ขายเลือกวิธีส่งมอบงานได้ชัด และเก็บไฟล์แบบ private เป็นค่าเริ่มต้น
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>
+                ส่วนนี้สรุปทั้ง 3 วิธีส่งมอบหลักและหลักการเก็บไฟล์ที่ช่วยให้ผู้ขายเชื่อใจระบบได้มากขึ้นก่อนกดเข้า Seller Studio
+              </Typography>
+            </Box>
 
-          <Grid container spacing={1.5}>
-            {sellerUploadChecklist.map((item) => (
-              <Grid key={item} size={{ xs: 12, md: 6, lg: 4 }}>
-                <Paper
-                  sx={{
-                    ...glassSurfaceMutedSx,
-                    p: 2,
-                    borderRadius: uiRadius.lg,
-                    height: '100%',
-                  }}
-                >
-                  <Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>
-                    {item}
+            <Grid container spacing={2}>
+              {sellerDeliveryMethodOptions.map((option) => (
+                <Grid key={option.value} size={{ xs: 12, md: 4 }}>
+                  <Paper
+                    sx={{
+                      ...glassSurfaceMutedSx,
+                      p: 2.25,
+                      borderRadius: uiRadius.lg,
+                      height: '100%',
+                    }}
+                  >
+                    <Stack spacing={1}>
+                      <Typography variant="h6">{option.label}</Typography>
+                      <Typography color="text.secondary">{option.description}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.75 }}>
+                        {option.helperText}
+                      </Typography>
+                    </Stack>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+
+            <Grid container spacing={2}>
+              {sellerStoragePolicyHighlights.map((item) => (
+                <Grid key={item.title} size={{ xs: 12, md: 6 }}>
+                  <Paper
+                    sx={{
+                      p: 2.25,
+                      borderRadius: uiRadius.lg,
+                      height: '100%',
+                      backgroundColor: 'rgba(255,255,255,0.72)',
+                    }}
+                  >
+                    <Stack spacing={0.85}>
+                      <Typography variant="h6">{item.title}</Typography>
+                      <Typography color="text.secondary">{item.description}</Typography>
+                    </Stack>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+
+            <Paper sx={{ ...glassSurfaceMutedSx, p: 2.5, borderRadius: uiRadius.lg }}>
+              <Stack spacing={1.1}>
+                <SectionBadge label="แนวทางของแพลตฟอร์ม" />
+                {sellerPlatformPolicyStatements.map((statement) => (
+                  <Typography key={statement} color="text.secondary" sx={{ lineHeight: 1.85 }}>
+                    • {statement}
                   </Typography>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Stack>
-      </Paper>
+                ))}
+              </Stack>
+            </Paper>
+          </Stack>
+        </Paper>
+      </GuidedSellerSection>
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 7 }}>
-          <Paper sx={{ p: 3, borderRadius: uiRadius.xl, height: '100%' }}>
-            <Stack spacing={2.5}>
-              <Box>
-                <SectionBadge label="เลือกประเภทสินค้าที่จะขาย" />
-                <Typography variant="h4" sx={{ mt: 1.25 }}>
-                  ดูก่อนว่าระบบนี้รองรับสินค้ารูปแบบไหนบ้าง
-                </Typography>
-                <Typography color="text.secondary" sx={{ mt: 1 }}>
-                  หลังจากเตรียมข้อมูลครบแล้ว ให้เลือกแนวสินค้าที่ใกล้กับสิ่งที่คุณจะลงขายที่สุด
-                  เพื่อกำหนดวิธีอธิบายแพ็กเกจและตั้งความคาดหวังของผู้ซื้อให้ตรงกัน
-                </Typography>
-              </Box>
+          <GuidedSellerSection {...getSectionProps(3)}>
+            <Paper sx={{ p: 3, borderRadius: uiRadius.xl, height: '100%' }}>
+              <Stack spacing={2.5}>
+                <Box>
+                  <SectionBadge label="เลือกประเภทสินค้าที่จะขาย" />
+                  <Typography variant="h4" sx={{ mt: 1.25 }}>
+                    ดูก่อนว่าระบบนี้รองรับสินค้ารูปแบบไหนบ้าง
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    หลังจากเตรียมข้อมูลครบแล้ว ให้เลือกแนวสินค้าที่ใกล้กับสิ่งที่คุณจะลงขายที่สุด
+                    เพื่อกำหนดวิธีอธิบายแพ็กเกจและตั้งความคาดหวังของผู้ซื้อให้ตรงกัน
+                  </Typography>
+                </Box>
 
-              <Stack spacing={2}>
-                {sellerCatalogTypes.map((catalogType) => (
-                  <Paper
-                    key={catalogType.title}
-                    sx={{ p: 2.25, borderRadius: uiRadius.lg, backgroundColor: 'rgba(255,255,255,0.72)' }}
-                  >
-                    <Stack spacing={1.25}>
-                      <Typography variant="h6">{catalogType.title}</Typography>
-                      <Typography color="text.secondary">{catalogType.description}</Typography>
-                      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-                        {catalogType.tags.map((tag) => (
-                          <SectionBadge key={tag} label={tag} />
-                        ))}
+                <Stack spacing={2}>
+                  {sellerCatalogTypes.map((catalogType) => (
+                    <Paper
+                      key={catalogType.title}
+                      sx={{ p: 2.25, borderRadius: uiRadius.lg, backgroundColor: 'rgba(255,255,255,0.72)' }}
+                    >
+                      <Stack spacing={1.25}>
+                        <Typography variant="h6">{catalogType.title}</Typography>
+                        <Typography color="text.secondary">{catalogType.description}</Typography>
+                        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                          {catalogType.tags.map((tag) => (
+                            <SectionBadge key={tag} label={tag} />
+                          ))}
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  </Paper>
-                ))}
+                    </Paper>
+                  ))}
+                </Stack>
               </Stack>
-            </Stack>
-          </Paper>
+            </Paper>
+          </GuidedSellerSection>
         </Grid>
 
         <Grid size={{ xs: 12, md: 5 }}>
-          <Paper sx={{ p: 3, borderRadius: uiRadius.xl, height: '100%' }}>
-            <Stack spacing={2.5}>
-              <Box>
-                <SectionBadge label="สิ่งที่ระบบช่วยผู้ขาย" />
-                <Typography variant="h4" sx={{ mt: 1.25 }}>
-                  ปิดท้ายด้วยภาพรวมว่าระบบนี้ช่วยให้คุณเริ่มขายง่ายขึ้นอย่างไร
-                </Typography>
-                <Typography color="text.secondary" sx={{ mt: 1 }}>
-                  ส่วนนี้อธิบายจากฟีเจอร์ที่มีอยู่จริงในระบบตอนนี้ ว่าจะช่วยให้ผู้ขายจัดการข้อมูล
-                  และเชื่อมไปยังหน้าที่ผู้ซื้อเห็นได้อย่างไร
-                </Typography>
-              </Box>
+          <GuidedSellerSection {...getSectionProps(4)}>
+            <Paper sx={{ p: 3, borderRadius: uiRadius.xl, height: '100%' }}>
+              <Stack spacing={2.5}>
+                <Box>
+                  <SectionBadge label="สิ่งที่ระบบช่วยผู้ขาย" />
+                  <Typography variant="h4" sx={{ mt: 1.25 }}>
+                    ปิดท้ายด้วยภาพรวมว่าระบบนี้ช่วยให้คุณเริ่มขายง่ายขึ้นอย่างไร
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    ส่วนนี้อธิบายจากฟีเจอร์ที่มีอยู่จริงในระบบตอนนี้ ว่าจะช่วยให้ผู้ขายจัดการข้อมูล
+                    และเชื่อมไปยังหน้าที่ผู้ซื้อเห็นได้อย่างไร
+                  </Typography>
+                </Box>
 
-              <Stack spacing={1.5}>
-                {sellerFeatures.map((feature) => (
-                  <Paper
-                    key={feature.title}
-                    sx={{ p: 2.25, borderRadius: uiRadius.lg, backgroundColor: 'rgba(255,255,255,0.72)' }}
-                  >
-                    <Stack spacing={0.75}>
-                      <Typography variant="h6">{feature.title}</Typography>
-                      <Typography color="text.secondary">{feature.description}</Typography>
-                    </Stack>
-                  </Paper>
-                ))}
+                <Stack spacing={1.5}>
+                  {sellerFeatures.map((feature) => (
+                    <Paper
+                      key={feature.title}
+                      sx={{ p: 2.25, borderRadius: uiRadius.lg, backgroundColor: 'rgba(255,255,255,0.72)' }}
+                    >
+                      <Stack spacing={0.75}>
+                        <Typography variant="h6">{feature.title}</Typography>
+                        <Typography color="text.secondary">{feature.description}</Typography>
+                      </Stack>
+                    </Paper>
+                  ))}
+                </Stack>
               </Stack>
-            </Stack>
-          </Paper>
+            </Paper>
+          </GuidedSellerSection>
         </Grid>
       </Grid>
     </Container>

@@ -1,3 +1,4 @@
+import GitHubIcon from '@mui/icons-material/GitHub'
 import GoogleIcon from '@mui/icons-material/Google'
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import {
@@ -13,6 +14,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/app/providers/useAuth'
 import { useNotification } from '@/app/providers/useNotification'
 import { CloseActionButton } from '@/components/common/CloseActionButton'
+import { env } from '@/config/env'
 import { authService } from '@/services/api/auth.service'
 import { sellerService } from '@/services/api/seller.service'
 import {
@@ -55,11 +57,11 @@ const dialogCopy: Record<
     loadingLabel: 'กำลังเตรียมการสมัคร...',
   },
   'seller-register': {
-    badge: 'เปิดบัญชีผู้ขาย',
+    badge: 'เปิดบัญชีผู้ขายด้วย GitHub',
     title: 'สมัครผู้ขาย',
-    helperText: 'ใช้บัญชี Google เพื่อเริ่มต้นเปิดบัญชีสำหรับลงขาย',
-    actionLabel: 'เปิดบัญชีผู้ขาย',
-    loadingLabel: 'กำลังเปิดบัญชีผู้ขาย...',
+    helperText: 'ใช้บัญชี GitHub เพื่อเริ่มต้นเปิดบัญชีสำหรับลงขายซอร์สโค้ดและเทมเพลต',
+    actionLabel: 'เชื่อม GitHub เพื่อเปิดบัญชีผู้ขาย',
+    loadingLabel: 'กำลังเชื่อม GitHub...',
   },
 }
 
@@ -77,6 +79,9 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
   }
 
   const copy = dialogCopy[mode]
+  const actionIcon = mode === 'seller-register' ? <GitHubIcon /> : <GoogleIcon />
+  const requiresGoogleClientId = mode !== 'seller-register'
+  const isGoogleAuthReady = !requiresGoogleClientId || Boolean(env.googleClientId)
 
   const handleContinue = async () => {
     setIsSubmitting(true)
@@ -216,13 +221,24 @@ export const AuthDialog = ({ open, mode, onClose }: AuthDialogProps) => {
               <Stack spacing={0.6}>
                 <Typography variant="h4">{copy.title}</Typography>
                 <Typography color="text.secondary">{copy.helperText}</Typography>
+                {!isGoogleAuthReady ? (
+                  <Typography color="text.secondary" sx={{ fontSize: '0.95rem' }}>
+                    เพิ่มค่า
+                    {' '}
+                    <Box component="span" sx={{ fontWeight: 700 }}>
+                      VITE_GOOGLE_CLIENT_ID
+                    </Box>
+                    {' '}
+                    ในไฟล์ .env.local ก่อน จึงจะใช้งาน Google Sign-In แบบจริงได้
+                  </Typography>
+                ) : null}
               </Stack>
 
               <Button
                 variant="contained"
                 fullWidth
-                startIcon={<GoogleIcon />}
-                disabled={isSubmitting}
+                startIcon={actionIcon}
+                disabled={isSubmitting || !isGoogleAuthReady}
                 onClick={handleContinue}
                 sx={{
                   minHeight: 56,

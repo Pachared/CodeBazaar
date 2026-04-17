@@ -45,6 +45,7 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
   const [loadedUserKey, setLoadedUserKey] = useState<string | null>(null)
 
   const userKey = user?.id ?? null
+  const shouldUseRemoteLibrary = hasRemoteApi && Boolean(userKey && user?.isMock)
   const localItems = useMemo(
     () =>
       userKey
@@ -55,8 +56,12 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
         : [],
     [libraryByUser, userKey],
   )
-  const items = hasRemoteApi ? (userKey && loadedUserKey === userKey ? remoteItems : []) : localItems
-  const hasLoaded = !hasRemoteApi || !userKey || loadedUserKey === userKey
+  const items = shouldUseRemoteLibrary
+    ? userKey && loadedUserKey === userKey
+      ? remoteItems
+      : []
+    : localItems
+  const hasLoaded = !shouldUseRemoteLibrary || !userKey || loadedUserKey === userKey
   const totalSpent = items.reduce((total, item) => total + item.price, 0)
 
   const commitLibrary = (
@@ -77,7 +82,7 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
       return
     }
 
-    if (hasRemoteApi) {
+    if (shouldUseRemoteLibrary) {
       void downloadsService
         .getDownloads()
         .then((nextItems) => {
@@ -138,7 +143,7 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
 
     const downloadedAt = new Date().toISOString()
 
-    if (hasRemoteApi) {
+    if (shouldUseRemoteLibrary) {
       void downloadsService
         .markDownloaded(libraryItemId)
         .then(() => downloadsService.getDownloads())
@@ -156,7 +161,7 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
         })
     }
 
-    if (!hasRemoteApi) {
+    if (!shouldUseRemoteLibrary) {
       commitLibrary((currentState) => ({
         ...currentState,
         [userKey]: (currentState[userKey] ?? []).map((item) =>
@@ -179,7 +184,7 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
   }
 
   useEffect(() => {
-    if (!hasRemoteApi || !userKey || loadedUserKey === userKey) {
+    if (!shouldUseRemoteLibrary || !userKey || loadedUserKey === userKey) {
       return
     }
 
@@ -201,7 +206,7 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
       })
 
     return () => controller.abort()
-  }, [loadedUserKey, userKey])
+  }, [loadedUserKey, shouldUseRemoteLibrary, userKey])
 
   return (
     <DownloadLibraryContext.Provider

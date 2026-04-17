@@ -18,12 +18,24 @@ export const sellerService = {
 
       return createMockAuthResponse(createMockSellerSession(), {
         title: 'เปิดบัญชีผู้ขายสำเร็จ',
-        description: 'เข้าสู่ระบบด้วยบัญชีผู้ขายทดลองเรียบร้อยแล้ว',
+        description: 'เชื่อมบัญชีผู้ขายทดลองด้วย GitHub เรียบร้อยแล้ว',
       })
     }
 
-    const { data } = await apiClient.post<AuthActionResponse>('/seller/onboarding/google')
-    return data
+    const { data } = await apiClient.post<AuthActionResponse>('/seller/onboarding/github')
+
+    if (!data.session) {
+      return data
+    }
+
+    return {
+      ...data,
+      session: {
+        ...data.session,
+        role: 'seller',
+        provider: 'github',
+      },
+    }
   },
 
   async submitListing(

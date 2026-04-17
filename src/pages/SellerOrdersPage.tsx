@@ -1,5 +1,5 @@
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
-import GoogleIcon from '@mui/icons-material/Google'
+import GitHubIcon from '@mui/icons-material/GitHub'
 import StorefrontRoundedIcon from '@mui/icons-material/StorefrontRounded'
 import {
   Box,
@@ -273,15 +273,15 @@ export const SellerOrdersPage = () => {
             <SectionBadge label="ยังไม่เข้าสู่ระบบ" />
             <Typography variant="h4">เข้าสู่ระบบก่อนเพื่อดูคำสั่งซื้อของร้าน</Typography>
             <Typography color="text.secondary">
-              ใช้บัญชี Google เดิมของผู้ขายเพื่อเปิดดูรายการคำสั่งซื้อ ยอดขาย และข้อมูลลูกค้าที่ซื้อผลงานของคุณ
+              ใช้บัญชี GitHub ของผู้ขายเพื่อเปิดดูรายการคำสั่งซื้อ ยอดขาย และข้อมูลลูกค้าที่ซื้อผลงานของคุณ
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
               <Button
                 variant="contained"
-                startIcon={<GoogleIcon />}
+                startIcon={<GitHubIcon />}
                 onClick={() => openAuthDialog('seller-register')}
               >
-                เปิดบัญชีผู้ขาย
+                เปิดบัญชีผู้ขายด้วย GitHub
               </Button>
               <Button
                 variant="outlined"
@@ -308,15 +308,15 @@ export const SellerOrdersPage = () => {
             <SectionBadge label="สำหรับผู้ขายเท่านั้น" />
             <Typography variant="h4">เปิดบัญชีผู้ขายก่อนเพื่อดูรายการที่ลูกค้าซื้อจากร้านของคุณ</Typography>
             <Typography color="text.secondary">
-              หลังจากเปิดบัญชีผู้ขายแล้ว คุณจะสามารถดูคำสั่งซื้อ ยอดรวมของร้าน และรายการสินค้าที่ถูกซื้อได้จากหน้านี้ทันที
+              หลังจากเชื่อม GitHub เพื่อเปิดบัญชีผู้ขายแล้ว คุณจะสามารถดูคำสั่งซื้อ ยอดรวมของร้าน และรายการสินค้าที่ถูกซื้อได้จากหน้านี้ทันที
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
               <Button
                 variant="contained"
-                startIcon={<StorefrontRoundedIcon />}
+                startIcon={<GitHubIcon />}
                 onClick={() => openAuthDialog('seller-register')}
               >
-                เปิดบัญชีผู้ขาย
+                เปิดบัญชีผู้ขายด้วย GitHub
               </Button>
               <Button
                 variant="outlined"

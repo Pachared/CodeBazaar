@@ -164,6 +164,9 @@ const DownloadLibraryCard = ({
               ? `ดาวน์โหลดล่าสุด ${thaiDateFormatter.format(new Date(item.lastDownloadedAt))}`
               : 'ยังไม่เคยดาวน์โหลดจากคลังนี้'}
           </Typography>
+          <Typography color="text.secondary">
+            ทุกครั้งที่กดดาวน์โหลด ระบบจะสร้าง signed URL ใหม่แบบหมดอายุเร็วให้เฉพาะออเดอร์นี้
+          </Typography>
         </Stack>
 
         <Button
@@ -211,7 +214,7 @@ export const DownloadsPage = () => {
           </Typography>
           <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 760, fontWeight: 500 }}>
             หน้านี้ใช้สำหรับผู้ซื้อที่ต้องการกลับมาโหลด source code, template และไฟล์แพ็กเกจที่ซื้อไว้
-            โดยจะผูกกับคำสั่งซื้อของบัญชีนี้และรองรับการกลับมาโหลดซ้ำได้ตลอด
+            โดยจะผูกกับคำสั่งซื้อของบัญชีนี้และสร้างลิงก์ดาวน์โหลดแบบชั่วคราวใหม่ทุกครั้งหลังตรวจสิทธิ์
           </Typography>
         </Stack>
       </Paper>

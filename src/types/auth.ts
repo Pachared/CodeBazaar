@@ -3,6 +3,7 @@ export type BuyerAuthIntent = 'login' | 'register'
 export type AuthDialogMode = 'buyer-login' | 'buyer-register' | 'seller-register'
 
 export type AuthUserRole = 'buyer' | 'seller'
+export type AuthProvider = 'google' | 'github'
 
 export interface AuthProfileFields {
   phoneNumber: string
@@ -25,7 +26,7 @@ export interface AuthSessionUser extends AuthProfileFields {
   name: string
   email: string
   role: AuthUserRole
-  provider: 'google'
+  provider: AuthProvider
   isMock: boolean
 }
 

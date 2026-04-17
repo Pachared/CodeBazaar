@@ -10,8 +10,8 @@ export const normalizeAuthSession = (session: Partial<AuthSessionUser> | null) =
 
   return {
     ...createDefaultProfileFields(session.role),
-    provider: 'google',
-    isMock: true,
+    provider: session.provider ?? (session.role === 'seller' ? 'github' : 'google'),
+    isMock: session.isMock ?? false,
     ...session,
   } as AuthSessionUser
 }

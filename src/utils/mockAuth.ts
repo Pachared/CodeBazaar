@@ -1,5 +1,6 @@
 import type {
   AuthActionResponse,
+  AuthProvider,
   AuthProfileFields,
   AuthSessionUser,
   BuyerAuthIntent,
@@ -7,11 +8,13 @@ import type {
 import { createDefaultProfileFields } from '@/utils/authProfileDefaults'
 
 const createBaseSession = (
-  session: Omit<AuthSessionUser, 'provider' | 'isMock' | keyof AuthProfileFields>,
+  session: Omit<AuthSessionUser, 'provider' | 'isMock' | keyof AuthProfileFields> & {
+    provider?: AuthProvider
+  },
 ): AuthSessionUser => ({
   ...createDefaultProfileFields(session.role),
   ...session,
-  provider: 'google',
+  provider: session.provider ?? (session.role === 'seller' ? 'github' : 'google'),
   isMock: true,
 })
 
@@ -32,6 +35,7 @@ export const createMockSellerSession = () =>
     name: 'ผู้ขายทดลอง',
     email: 'seller@codebazaar.local',
     role: 'seller',
+    provider: 'github',
   })
 
 export const createMockAuthResponse = (
