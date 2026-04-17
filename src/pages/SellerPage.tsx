@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Container,
-  Grid,
   Paper,
   Stack,
   Typography,
@@ -55,6 +54,24 @@ const sellerPrimaryActionSx = {
   },
 } as const
 
+const sellerSectionPaperSx = {
+  p: { xs: 3, md: 3.5 },
+  borderRadius: uiRadius.md,
+  background: softAccentBackgroundMuted,
+} as const
+
+const sellerRectCardSx = {
+  p: 2.25,
+  borderRadius: uiRadius.md,
+  backgroundColor: 'rgba(255,255,255,0.72)',
+} as const
+
+const sellerGlassRectCardSx = {
+  ...glassSurfaceMutedSx,
+  p: 2.25,
+  borderRadius: uiRadius.md,
+} as const
+
 interface GuidedSellerSectionProps {
   active: boolean
   completed: boolean
@@ -92,7 +109,7 @@ const GuidedSellerSection = ({
       sx={{
         position: 'relative',
         overflow: 'visible',
-        borderRadius: uiRadius.xl,
+        borderRadius: uiRadius.lg,
         border: active
           ? '1px solid rgba(17, 17, 17, 0.88)'
           : completed
@@ -219,7 +236,7 @@ export const SellerPage = () => {
       <Paper
         sx={{
           p: { xs: 3, md: 4.5 },
-          borderRadius: uiRadius.xl,
+          borderRadius: uiRadius.md,
           background: softAccentBackground,
         }}
       >
@@ -289,7 +306,7 @@ export const SellerPage = () => {
       </Paper>
 
       <GuidedSellerSection {...getSectionProps(0)}>
-        <Paper sx={{ p: 3, borderRadius: uiRadius.xl }}>
+        <Paper sx={sellerSectionPaperSx}>
           <Stack spacing={2.5}>
             <Box>
               <SectionBadge label="เริ่มต้นก่อนลงขาย" />
@@ -302,40 +319,33 @@ export const SellerPage = () => {
               </Typography>
             </Box>
 
-            <Grid container spacing={2}>
+            <Stack spacing={1.5}>
               {sellerSteps.map((step, index) => (
-                <Grid key={step.title} size={{ xs: 12, md: 6, lg: 3 }}>
-                  <Paper
-                    sx={{
-                      p: 2.5,
-                      borderRadius: uiRadius.lg,
-                      height: '100%',
-                      backgroundColor: 'rgba(255,255,255,0.72)',
-                    }}
+                <Paper key={step.title} sx={sellerRectCardSx}>
+                  <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    spacing={2}
+                    sx={{ alignItems: { md: 'flex-start' } }}
                   >
-                    <Stack spacing={1.25}>
+                    <Box sx={{ minWidth: { md: 120 } }}>
                       <Typography variant="body2" color="text.secondary">
                         ขั้นตอน {index + 1}
                       </Typography>
+                    </Box>
+                    <Stack spacing={0.7}>
                       <Typography variant="h6">{step.title}</Typography>
                       <Typography color="text.secondary">{step.description}</Typography>
                     </Stack>
-                  </Paper>
-                </Grid>
+                  </Stack>
+                </Paper>
               ))}
-            </Grid>
+            </Stack>
           </Stack>
         </Paper>
       </GuidedSellerSection>
 
       <GuidedSellerSection {...getSectionProps(1)}>
-        <Paper
-          sx={{
-            p: { xs: 3, md: 3.5 },
-            borderRadius: uiRadius.xl,
-            background: softAccentBackgroundMuted,
-          }}
-        >
+        <Paper sx={sellerSectionPaperSx}>
           <Stack spacing={2.25}>
             <Box>
               <SectionBadge label="เตรียมก่อนเข้า Studio" />
@@ -348,36 +358,21 @@ export const SellerPage = () => {
               </Typography>
             </Box>
 
-            <Grid container spacing={1.5}>
+            <Stack spacing={1.25}>
               {sellerUploadChecklist.map((item) => (
-                <Grid key={item} size={{ xs: 12, md: 6, lg: 4 }}>
-                  <Paper
-                    sx={{
-                      ...glassSurfaceMutedSx,
-                      p: 2,
-                      borderRadius: uiRadius.lg,
-                      height: '100%',
-                    }}
-                  >
-                    <Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>
-                      {item}
-                    </Typography>
-                  </Paper>
-                </Grid>
+                <Paper key={item} sx={sellerGlassRectCardSx}>
+                  <Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>
+                    {item}
+                  </Typography>
+                </Paper>
               ))}
-            </Grid>
+            </Stack>
           </Stack>
         </Paper>
       </GuidedSellerSection>
 
       <GuidedSellerSection {...getSectionProps(2)}>
-        <Paper
-          sx={{
-            p: { xs: 3, md: 3.5 },
-            borderRadius: uiRadius.xl,
-            background: softAccentBackgroundMuted,
-          }}
-        >
+        <Paper sx={sellerSectionPaperSx}>
           <Stack spacing={2.5}>
             <Box>
               <SectionBadge label="รูปแบบการส่งมอบและการเก็บไฟล์" />
@@ -389,50 +384,32 @@ export const SellerPage = () => {
               </Typography>
             </Box>
 
-            <Grid container spacing={2}>
+            <Stack spacing={1.5}>
               {sellerDeliveryMethodOptions.map((option) => (
-                <Grid key={option.value} size={{ xs: 12, md: 4 }}>
-                  <Paper
-                    sx={{
-                      ...glassSurfaceMutedSx,
-                      p: 2.25,
-                      borderRadius: uiRadius.lg,
-                      height: '100%',
-                    }}
-                  >
-                    <Stack spacing={1}>
-                      <Typography variant="h6">{option.label}</Typography>
-                      <Typography color="text.secondary">{option.description}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.75 }}>
-                        {option.helperText}
-                      </Typography>
-                    </Stack>
-                  </Paper>
-                </Grid>
+                <Paper key={option.value} sx={sellerGlassRectCardSx}>
+                  <Stack spacing={1}>
+                    <Typography variant="h6">{option.label}</Typography>
+                    <Typography color="text.secondary">{option.description}</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.75 }}>
+                      {option.helperText}
+                    </Typography>
+                  </Stack>
+                </Paper>
               ))}
-            </Grid>
+            </Stack>
 
-            <Grid container spacing={2}>
+            <Stack spacing={1.5}>
               {sellerStoragePolicyHighlights.map((item) => (
-                <Grid key={item.title} size={{ xs: 12, md: 6 }}>
-                  <Paper
-                    sx={{
-                      p: 2.25,
-                      borderRadius: uiRadius.lg,
-                      height: '100%',
-                      backgroundColor: 'rgba(255,255,255,0.72)',
-                    }}
-                  >
-                    <Stack spacing={0.85}>
-                      <Typography variant="h6">{item.title}</Typography>
-                      <Typography color="text.secondary">{item.description}</Typography>
-                    </Stack>
-                  </Paper>
-                </Grid>
+                <Paper key={item.title} sx={sellerRectCardSx}>
+                  <Stack spacing={0.85}>
+                    <Typography variant="h6">{item.title}</Typography>
+                    <Typography color="text.secondary">{item.description}</Typography>
+                  </Stack>
+                </Paper>
               ))}
-            </Grid>
+            </Stack>
 
-            <Paper sx={{ ...glassSurfaceMutedSx, p: 2.5, borderRadius: uiRadius.lg }}>
+            <Paper sx={{ ...sellerGlassRectCardSx, p: 2.5 }}>
               <Stack spacing={1.1}>
                 <SectionBadge label="แนวทางของแพลตฟอร์ม" />
                 {sellerPlatformPolicyStatements.map((statement) => (
@@ -446,78 +423,66 @@ export const SellerPage = () => {
         </Paper>
       </GuidedSellerSection>
 
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 7 }}>
-          <GuidedSellerSection {...getSectionProps(3)}>
-            <Paper sx={{ p: 3, borderRadius: uiRadius.xl, height: '100%' }}>
-              <Stack spacing={2.5}>
-                <Box>
-                  <SectionBadge label="เลือกประเภทสินค้าที่จะขาย" />
-                  <Typography variant="h4" sx={{ mt: 1.25 }}>
-                    ดูก่อนว่าระบบนี้รองรับสินค้ารูปแบบไหนบ้าง
-                  </Typography>
-                  <Typography color="text.secondary" sx={{ mt: 1 }}>
-                    หลังจากเตรียมข้อมูลครบแล้ว ให้เลือกแนวสินค้าที่ใกล้กับสิ่งที่คุณจะลงขายที่สุด
-                    เพื่อกำหนดวิธีอธิบายแพ็กเกจและตั้งความคาดหวังของผู้ซื้อให้ตรงกัน
-                  </Typography>
-                </Box>
+      <GuidedSellerSection {...getSectionProps(3)}>
+        <Paper sx={sellerSectionPaperSx}>
+          <Stack spacing={2.5}>
+            <Box>
+              <SectionBadge label="เลือกประเภทสินค้าที่จะขาย" />
+              <Typography variant="h4" sx={{ mt: 1.25 }}>
+                ดูก่อนว่าระบบนี้รองรับสินค้ารูปแบบไหนบ้าง
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>
+                หลังจากเตรียมข้อมูลครบแล้ว ให้เลือกแนวสินค้าที่ใกล้กับสิ่งที่คุณจะลงขายที่สุด
+                เพื่อกำหนดวิธีอธิบายแพ็กเกจและตั้งความคาดหวังของผู้ซื้อให้ตรงกัน
+              </Typography>
+            </Box>
 
-                <Stack spacing={2}>
-                  {sellerCatalogTypes.map((catalogType) => (
-                    <Paper
-                      key={catalogType.title}
-                      sx={{ p: 2.25, borderRadius: uiRadius.lg, backgroundColor: 'rgba(255,255,255,0.72)' }}
-                    >
-                      <Stack spacing={1.25}>
-                        <Typography variant="h6">{catalogType.title}</Typography>
-                        <Typography color="text.secondary">{catalogType.description}</Typography>
-                        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-                          {catalogType.tags.map((tag) => (
-                            <SectionBadge key={tag} label={tag} />
-                          ))}
-                        </Stack>
-                      </Stack>
-                    </Paper>
-                  ))}
-                </Stack>
-              </Stack>
-            </Paper>
-          </GuidedSellerSection>
-        </Grid>
+            <Stack spacing={1.5}>
+              {sellerCatalogTypes.map((catalogType) => (
+                <Paper key={catalogType.title} sx={sellerRectCardSx}>
+                  <Stack spacing={1.25}>
+                    <Typography variant="h6">{catalogType.title}</Typography>
+                    <Typography color="text.secondary">{catalogType.description}</Typography>
+                    <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                      {catalogType.tags.map((tag) => (
+                        <SectionBadge key={tag} label={tag} />
+                      ))}
+                    </Stack>
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          </Stack>
+        </Paper>
+      </GuidedSellerSection>
 
-        <Grid size={{ xs: 12, md: 5 }}>
-          <GuidedSellerSection {...getSectionProps(4)}>
-            <Paper sx={{ p: 3, borderRadius: uiRadius.xl, height: '100%' }}>
-              <Stack spacing={2.5}>
-                <Box>
-                  <SectionBadge label="สิ่งที่ระบบช่วยผู้ขาย" />
-                  <Typography variant="h4" sx={{ mt: 1.25 }}>
-                    ปิดท้ายด้วยภาพรวมว่าระบบนี้ช่วยให้คุณเริ่มขายง่ายขึ้นอย่างไร
-                  </Typography>
-                  <Typography color="text.secondary" sx={{ mt: 1 }}>
-                    ส่วนนี้อธิบายจากฟีเจอร์ที่มีอยู่จริงในระบบตอนนี้ ว่าจะช่วยให้ผู้ขายจัดการข้อมูล
-                    และเชื่อมไปยังหน้าที่ผู้ซื้อเห็นได้อย่างไร
-                  </Typography>
-                </Box>
+      <GuidedSellerSection {...getSectionProps(4)}>
+        <Paper sx={sellerSectionPaperSx}>
+          <Stack spacing={2.5}>
+            <Box>
+              <SectionBadge label="สิ่งที่ระบบช่วยผู้ขาย" />
+              <Typography variant="h4" sx={{ mt: 1.25 }}>
+                ปิดท้ายด้วยภาพรวมว่าระบบนี้ช่วยให้คุณเริ่มขายง่ายขึ้นอย่างไร
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>
+                ส่วนนี้อธิบายจากฟีเจอร์ที่มีอยู่จริงในระบบตอนนี้ ว่าจะช่วยให้ผู้ขายจัดการข้อมูล
+                และเชื่อมไปยังหน้าที่ผู้ซื้อเห็นได้อย่างไร
+              </Typography>
+            </Box>
 
-                <Stack spacing={1.5}>
-                  {sellerFeatures.map((feature) => (
-                    <Paper
-                      key={feature.title}
-                      sx={{ p: 2.25, borderRadius: uiRadius.lg, backgroundColor: 'rgba(255,255,255,0.72)' }}
-                    >
-                      <Stack spacing={0.75}>
-                        <Typography variant="h6">{feature.title}</Typography>
-                        <Typography color="text.secondary">{feature.description}</Typography>
-                      </Stack>
-                    </Paper>
-                  ))}
-                </Stack>
-              </Stack>
-            </Paper>
-          </GuidedSellerSection>
-        </Grid>
-      </Grid>
+            <Stack spacing={1.5}>
+              {sellerFeatures.map((feature) => (
+                <Paper key={feature.title} sx={sellerRectCardSx}>
+                  <Stack spacing={0.75}>
+                    <Typography variant="h6">{feature.title}</Typography>
+                    <Typography color="text.secondary">{feature.description}</Typography>
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          </Stack>
+        </Paper>
+      </GuidedSellerSection>
     </Container>
   )
 }

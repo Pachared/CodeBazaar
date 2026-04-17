@@ -2,7 +2,7 @@
 
 :root {
   color: #0f0f10;
-  background: #f5f5f7;
+  background: #b8c8ff;
   font-family: 'Noto Sans Thai', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -25,12 +25,13 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 30%),
-    radial-gradient(circle at 14% 10%, rgba(125, 140, 255, 0.18), transparent 24%),
-    radial-gradient(circle at 85% 12%, rgba(177, 125, 255, 0.14), transparent 22%),
-    radial-gradient(circle at 78% 42%, rgba(137, 215, 255, 0.12), transparent 18%),
-    linear-gradient(180deg, #fcfcff 0%, #f3f4fa 48%, #eff0f8 100%);
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.42), transparent 20%),
+    radial-gradient(circle at 12% 10%, rgba(64, 108, 255, 0.62), transparent 30%),
+    radial-gradient(circle at 86% 12%, rgba(90, 145, 255, 0.34), transparent 24%),
+    radial-gradient(circle at 78% 44%, rgba(56, 156, 255, 0.38), transparent 22%),
+    linear-gradient(180deg, #d4e1ff 0%, #bfd0ff 42%, #b2c4ff 100%);
   color: #0f0f10;
+  background-attachment: fixed;
 }
 
 a {
