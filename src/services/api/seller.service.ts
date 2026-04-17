@@ -11,6 +11,31 @@ import { createMockAuthResponse, createMockSellerSession } from '@/utils/mockAut
 import { mockDelay } from './mockDelay'
 import { apiClient } from './client'
 
+interface SellerListingApiPayload {
+  assetType: SellerListingInput['assetType']
+  title: string
+  categoryId: string
+  licenseId: string
+  price: number
+  summary: string
+  description: string
+  highlights: string[]
+  idealFor: string[]
+  supportInfo: string
+  stack: string[]
+  version: string
+  demoUrl: string
+  supportUrl: string
+  includedFiles: string[]
+  packageFileName: string
+  coverFileName: string
+  docsFileName: string
+  instantDelivery: boolean
+  sourceIncluded: boolean
+  documentationIncluded: boolean
+  mode: SellerListingMode
+}
+
 export const sellerService = {
   async openSellerAccount(): Promise<AuthActionResponse> {
     if (!hasRemoteApi) {
@@ -56,10 +81,32 @@ export const sellerService = {
       }
     }
 
-    const { data } = await apiClient.post<SellerListingResponse>('/seller/listings', {
-      ...input,
+    const payload: SellerListingApiPayload = {
+      assetType: input.assetType,
+      title: input.title,
+      categoryId: input.categoryId,
+      licenseId: input.licenseId,
+      price: input.price,
+      summary: input.summary,
+      description: input.description,
+      highlights: input.highlights,
+      idealFor: input.idealFor,
+      supportInfo: input.supportInfo,
+      stack: input.stack,
+      version: input.version,
+      demoUrl: input.demoUrl,
+      supportUrl: input.supportUrl,
+      includedFiles: input.includedFiles,
+      packageFileName: input.packageFileName,
+      coverFileName: input.coverFileName,
+      docsFileName: input.docsFileName,
+      instantDelivery: input.deliveryMethod !== 'github-private-repo',
+      sourceIncluded: input.deliveryMethod === 'source-package-upload',
+      documentationIncluded: input.docsFileName.trim().length > 0,
       mode,
-    })
+    }
+
+    const { data } = await apiClient.post<SellerListingResponse>('/seller/listings', payload)
 
     return data
   },

@@ -150,19 +150,37 @@ const createBuyerSessionFromGoogle = (userInfo: GoogleVerifiedUserInfo): AuthSes
   isMock: false,
 })
 
-export const googleIdentityService = {
-  async authenticateBuyer(intent: BuyerAuthIntent): Promise<AuthActionResponse> {
-    const accessToken = await requestGoogleAccessToken(intent)
-    const userInfo = await fetchGoogleUserInfo(accessToken)
-    const session = createBuyerSessionFromGoogle(userInfo)
+const buildLocalGoogleAuthResponse = async (
+  accessToken: string,
+  intent: BuyerAuthIntent,
+): Promise<AuthActionResponse> => {
+  const userInfo = await fetchGoogleUserInfo(accessToken)
+  const session = createBuyerSessionFromGoogle(userInfo)
 
-    return {
-      title: intent === 'login' ? 'เข้าสู่ระบบสำเร็จ' : 'สมัครสมาชิกสำเร็จ',
-      description:
-        intent === 'login'
-          ? 'บัญชี Google ของคุณถูกเชื่อมเข้ากับ CodeBazaar เรียบร้อยแล้ว'
-          : 'สร้างบัญชีผู้ใช้จาก Google เรียบร้อยแล้ว สามารถใช้งานต่อได้ทันที',
-      session,
-    }
+  return {
+    title: intent === 'login' ? 'เข้าสู่ระบบสำเร็จ' : 'สมัครสมาชิกสำเร็จ',
+    description:
+      intent === 'login'
+        ? 'บัญชี Google ของคุณถูกเชื่อมเข้ากับ CodeBazaar เรียบร้อยแล้ว'
+        : 'สร้างบัญชีผู้ใช้จาก Google เรียบร้อยแล้ว สามารถใช้งานต่อได้ทันที',
+    session,
+  }
+}
+
+export const googleIdentityService = {
+  async requestBuyerAccessToken(intent: BuyerAuthIntent): Promise<string> {
+    return requestGoogleAccessToken(intent)
+  },
+
+  async authenticateBuyerLocallyWithAccessToken(
+    accessToken: string,
+    intent: BuyerAuthIntent,
+  ): Promise<AuthActionResponse> {
+    return buildLocalGoogleAuthResponse(accessToken, intent)
+  },
+
+  async authenticateBuyerLocally(intent: BuyerAuthIntent): Promise<AuthActionResponse> {
+    const accessToken = await this.requestBuyerAccessToken(intent)
+    return buildLocalGoogleAuthResponse(accessToken, intent)
   },
 }

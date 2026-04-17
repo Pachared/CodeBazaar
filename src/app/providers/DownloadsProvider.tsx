@@ -45,7 +45,7 @@ export const DownloadsProvider = ({ children }: PropsWithChildren) => {
   const [loadedUserKey, setLoadedUserKey] = useState<string | null>(null)
 
   const userKey = user?.id ?? null
-  const shouldUseRemoteLibrary = hasRemoteApi && Boolean(userKey && user?.isMock)
+  const shouldUseRemoteLibrary = hasRemoteApi && Boolean(userKey)
   const localItems = useMemo(
     () =>
       userKey

@@ -25,30 +25,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     clearAuthSession()
   }, [])
 
-  const commitLocalProfile = useCallback(
-    (currentUser: AuthSessionUser, profile: AuthProfileUpdate) => {
-      const nextUser = normalizeAuthSession({
-        ...currentUser,
-        ...profile,
-      })
-
-      if (!nextUser) {
-        return null
-      }
-
-      commitSession(nextUser)
-      return nextUser
-    },
-    [commitSession],
-  )
-
-  const isMatchingRemoteSession = useCallback((currentUser: AuthSessionUser, nextUser: AuthSessionUser) => {
-    const currentEmail = currentUser.email.trim().toLowerCase()
-    const nextEmail = nextUser.email.trim().toLowerCase()
-
-    return currentUser.id === nextUser.id || (currentEmail.length > 0 && currentEmail === nextEmail)
-  }, [])
-
   const signIn = (session: AuthSessionUser) => {
     const normalizedSession = normalizeAuthSession(session)
 
@@ -60,7 +36,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }
 
   useEffect(() => {
-    if (!hasRemoteApi || !user?.id || !user.isMock) {
+    if (!hasRemoteApi || !user?.id) {
       return
     }
 
@@ -85,7 +61,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       })
 
     return () => controller.abort()
-  }, [commitSession, user?.id, user?.isMock])
+  }, [commitSession, user?.id])
 
   const updateProfile = async (profile: AuthProfileUpdate) => {
     if (!user) {
@@ -93,23 +69,17 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
 
     if (!hasRemoteApi) {
-      return commitLocalProfile(user, profile)
-    }
+      const nextUser = normalizeAuthSession({
+        ...user,
+        ...profile,
+      })
 
-    if (!user.isMock) {
-      try {
-        const nextUser = await profileService.updateProfile(profile)
-        const normalizedSession = normalizeAuthSession(nextUser)
-
-        if (normalizedSession && isMatchingRemoteSession(user, normalizedSession)) {
-          commitSession(normalizedSession)
-          return normalizedSession
-        }
-      } catch {
-        // Real Google sessions fall back to local persistence until the backend supports OAuth user binding.
+      if (!nextUser) {
+        return null
       }
 
-      return commitLocalProfile(user, profile)
+      commitSession(nextUser)
+      return nextUser
     }
 
     const nextUser = await profileService.updateProfile(profile)
