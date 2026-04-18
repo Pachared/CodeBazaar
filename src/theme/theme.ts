@@ -35,7 +35,7 @@ export const appTheme = createTheme({
       primary: '#111111',
       secondary: '#6e6e73',
     },
-    divider: alpha('#111111', 0.12),
+    divider: alpha('#111111', 0.18),
   },
   shape: {
     borderRadius: 8,
@@ -90,7 +90,7 @@ export const appTheme = createTheme({
         },
         contained: {
           background: accentGradientDark,
-          border: `1px solid ${alpha('#111111', 0.28)}`,
+          border: `1px solid ${alpha('#111111', 0.42)}`,
           boxShadow: 'none',
           '&:hover': {
             background: 'linear-gradient(145deg, #151722 0%, #304286 52%, #a17bff 100%)',
@@ -98,11 +98,11 @@ export const appTheme = createTheme({
           },
         },
         outlined: {
-          borderColor: alpha('#111111', 0.18),
+          borderColor: alpha('#111111', 0.38),
           backgroundColor: 'rgba(255, 255, 255, 0.38)',
           backdropFilter: 'blur(18px) saturate(132%)',
           '&:hover': {
-            borderColor: alpha('#111111', 0.3),
+            borderColor: alpha('#111111', 0.5),
             backgroundColor: 'rgba(255, 255, 255, 0.48)',
           },
         },
@@ -127,7 +127,7 @@ export const appTheme = createTheme({
         root: {
           borderRadius: uiRadius.sm,
           fontWeight: 600,
-          border: `1px solid ${alpha('#111111', 0.14)}`,
+          border: `1px solid ${alpha('#111111', 0.38)}`,
           backgroundColor: 'rgba(255, 255, 255, 0.36)',
           backdropFilter: 'blur(16px) saturate(130%)',
         },
@@ -157,13 +157,13 @@ export const appTheme = createTheme({
           backgroundColor: 'rgba(255, 255, 255, 0.46)',
           backdropFilter: 'blur(22px) saturate(138%)',
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: alpha('#111111', 0.18),
+            borderColor: alpha('#111111', 0.38),
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: alpha('#111111', 0.32),
+            borderColor: alpha('#111111', 0.5),
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: alpha('#111111', 0.42),
+            borderColor: alpha('#111111', 0.62),
             boxShadow: `0 0 0 3px ${alpha(accentPalette.primary, 0.08)}`,
           },
         },

@@ -14,8 +14,8 @@ export const accentPalette = {
   text: '#5866e9',
   soft: 'rgba(111, 124, 255, 0.08)',
   softStrong: 'rgba(111, 124, 255, 0.14)',
-  border: 'rgba(17, 17, 17, 0.16)',
-  borderStrong: 'rgba(17, 17, 17, 0.28)',
+  border: 'rgba(17, 17, 17, 0.38)',
+  borderStrong: 'rgba(17, 17, 17, 0.52)',
 } as const
 
 export const accentGradient = 'linear-gradient(135deg, #6f7cff 0%, #8c8bff 42%, #ad7cff 100%)'
